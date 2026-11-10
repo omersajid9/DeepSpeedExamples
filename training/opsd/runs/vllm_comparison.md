@@ -20,7 +20,8 @@ chunking disabled. Earlier vLLM runs with `max_num_batched_tokens=512` were 954.
 | 6k, 16 new | DeepSpeed dense eager | 1515.9 | 10.56 | `d4a324e9…` |
 | 6k, 16 new | DeepSpeed + CUDA graph | 1325.8 | 12.07 | `d4a324e9…` |
 | 6k, 16 new | DeepSpeed + paged decode | 1147.8 | 13.94 | `d4a324e9…` |
-| 6k, 16 new | DeepSpeed + paged prefill/decode | **1128.6** | **14.18** | `d4a324e9…` |
+| 6k, 16 new | DeepSpeed + paged prefill/decode | 1128.6 | 14.18 | `d4a324e9…` |
+| 6k, 16 new | DeepSpeed + paged prefill/decode + torch.compile | **1017.8** | **15.72** | `d4a324e9…` |
 | 6k, 16 new | vLLM no-chunk | **823.6** | **19.43** | `d4a324e9…` |
 | 20k, 8 new greedy | DeepSpeed dense eager | 3852.9 | 2.08 | `c4291b80…` |
 | 20k, 8 new greedy | DeepSpeed + CUDA graph | 3777.5 | 2.12 | `c4291b80…` |
@@ -30,24 +31,24 @@ chunking disabled. Earlier vLLM runs with `max_num_batched_tokens=512` were 954.
 
 ## Distance to vLLM
 
-| Workload | Before clean optimization | Best DeepSpeed | vLLM | Best vs vLLM |
-|---|---:|---:|---:|---:|
-| 4B 6k, 16 new | 1515.9 ms | 1128.6 ms | 823.6 ms | **1.37x slower** |
-| 4B 20k, 8 new greedy | 3852.9 ms | 3397.9 ms | 2794.4 ms | **1.22x slower** |
+| Workload             | Before clean optimization | **Best DeepSpeed** | vLLM      | Best vs vLLM     |
+| -------------------- | ------------------------: | -----------------: | --------: | ---------------: |
+| 4B 6k, 16 new        | 1515.9 ms                 | 1128.6 ms          | 823.6 ms  | **1.37x slower** |
+| 4B 20k, 8 new greedy | 3852.9 ms                 | 3397.9 ms          | 2794.4 ms | **1.22x slower** |
 
 - At 6k, vLLM is **1.37x faster** than the best DeepSpeed path; before the clean
-  optimization stack it was **1.84x faster**.
+optimization stack it was **1.84x faster**.
 - At 20k, vLLM is **1.22x faster**; before the clean stack it was **1.38x faster**.
 - Both engines return identical 6k tokens and identical 20k greedy tokens.
 - The gap is now mostly the fused prefill/attention and sampler path, not the paged
-  cache layout. Paged decode is the main DeepSpeed win; paged prefill is a memory win.
+cache layout. Paged decode is the main DeepSpeed win; paged prefill is a memory win.
 
 ### Gap decomposition
 
 | Workload | vLLM prefill+1 | vLLM decode | DeepSpeed prefill | DeepSpeed decode | Prefill gap | Decode gap |
 |---|---:|---:|---:|---:|---:|---:|
-| 4B 6k | 551.2 ms | 18.2 ms/token | 719.4 ms | 24.4 ms/token | **168 ms (59%)** | 117 ms (41%) |
-| 4B 20k | 2647.9 ms | 20.9 ms/token | 3071.1 ms | 33.9 ms/token | **423 ms (77%)** | 125 ms (23%) |
+| 4B 6k, compiled | 551.2 ms | 18.2 ms/token | 649.9 ms | 21.8 ms/token | **99 ms (63%)** | 58 ms (37%) |
+| 4B 20k, uncompiled | 2647.9 ms | 20.9 ms/token | 3071.1 ms | 33.9 ms/token | **423 ms (77%)** | 125 ms (23%) |
 
 Prefill is the larger absolute gap, especially at 20k; decode is the larger per-token gap.
 The next work should target fused prefill/compile first, then decode fusion; a decode-only

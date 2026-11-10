@@ -29,9 +29,9 @@ ablations from the confounded four-way and chunked-prefill runs.
 - **Chunked prefill is not a universal throughput optimization.** It helps LongBench
   prefill latency (-11.5%) but only +1.3% throughput; it hurts prefill-bound 5k/10k
   (17.8-45.3% slower) and adds 9.3% at 6k and 13.3% at 20k versus the no-chunk path.
-- **Best current vs vLLM:** 1.37x slower at 4B/6k (1129 vs 824 ms) and 1.22x slower at
-  4B/20k (3398 vs 2794 ms), both no-chunk. Before the clean optimization stack, dense
-  eager was 1.84x / 1.38x slower.
+- **Best current vs vLLM:** **1.235x slower at 4B/6k** (compiled, 1018 vs 824 ms) and
+  **1.22x slower at 4B/20k** (3398 vs 2794 ms). Before the clean optimization stack,
+  dense eager was 1.84x / 1.38x slower.
 
 ## Clean 4B 6k ablation (no chunked prefill)
 
@@ -43,7 +43,8 @@ Gumbel sampler (`temperature=0.7`, `top_p=0.9`, seed 0), warmup 1, one measured 
 | Dense eager (no graph) | 716.6 | 775.0 | 1515.6 | 10.56 | 9931.1 | `d4a324e9…` |
 | + CUDA graph capture | 715.6 | 590.1 | 1325.8 | 12.07 | 9947.6 | `d4a324e9…` |
 | + paged decode | 718.5 | 389.8 | 1147.8 | 13.94 | 9955.6 | `d4a324e9…` |
-| + paged prefill | 719.4 | 389.9 | **1128.6** | **14.18** | **9091.5** | `d4a324e9…` |
+| + paged prefill | 719.4 | 389.9 | 1128.6 | 14.18 | **9091.5** | `d4a324e9…` |
+| + torch.compile | 649.9 | 348.1 | **1017.8** | **15.72** | 10436.1 | `d4a324e9…` |
 | vLLM 0.33 no-chunk reference | — | — | **823.6** | **19.43** | — | `d4a324e9…` |
 
 | Increment | Total speedup | Decode speedup | Other effect |
@@ -52,12 +53,35 @@ Gumbel sampler (`temperature=0.7`, `top_p=0.9`, seed 0), warmup 1, one measured 
 | Paged decode (on graph) | 1.15x | 1.51x | +8.0 MiB peak |
 | Paged prefill (on paged decode) | 1.02x | ~1.00x | **-8.7% peak** |
 | All three vs dense eager | **1.34x** | **1.99x** | peak 9931 -> 9092 MiB |
-| Best vs vLLM (no chunk) | **1.37x slower** | — | vLLM 1.37x faster |
+| torch.compile on top | 1.11x | 1.12x | peak 9092 -> 10436 MiB |
+| Best vs vLLM (no chunk) | **1.235x slower** | — | vLLM 1.235x faster |
 | Dense eager vs vLLM (no chunk) | **1.84x slower** | — | — |
 
 The chunked four-way row from the earlier report is **2011.7 ms**, but that is not a
 clean “before” row: chunked prefill with dense staging adds ~686 ms versus the no-chunk
 graph path. Chunking is measured separately below.
+
+### torch.compile fusion (implemented, opt-in)
+
+`--torch-compile` wraps the model in `torch.compile(mode="max-autotune-no-cudagraphs",
+fullgraph=False, dynamic=False)` after paged attention is installed. It is only useful with
+CUDA graph capture; the eager compiled run was slower (1.94 s total) because attention
+graph breaks dominate.
+
+| 6k path | Prefill ms | Decode ms | Total ms | Tok/s | Peak MiB | Response SHA |
+|---|---:|---:|---:|---:|---:|---|
+| Paged prefill/decode + graph, no compile | 719.4 | 389.9 | 1128.6 | 14.18 | 9091.5 | `d4a324e9…` |
+| + torch.compile | 649.9 | 348.1 | **1017.8** | **15.72** | 10436.1 | `d4a324e9…` |
+| vLLM no-chunk | — | — | 823.6 | 19.43 | — | `d4a324e9…` |
+
+- Total speedup from compile: **1.11x**; prefill **1.11x**; decode **1.12x**.
+- Gap to vLLM improves from **1.37x** to **1.235x** at 6k.
+- Peak memory rises **14.8%** (9091 -> 10436 MiB) because compiled buffers/workspaces are
+  retained.
+- The compile path emits per-layer recompile warnings from the paged-attention shim and
+  the blocked-flash custom op; the remaining fusion headroom is in eliminating those graph
+  breaks, not in another cache change.
+- Compile warmup takes roughly 2-3 minutes on this A40; the measured iteration excludes it.
 
 ## Clean 4B 20k ablation (no chunked prefill)
 

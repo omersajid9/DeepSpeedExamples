@@ -3,18 +3,23 @@
 This is the forward-looking optimization plan. The measured attribution of what has
 already been implemented is in `runs/optimization_ablation.md`.
 
-Implemented stack: CUDA graph capture, paged decode, paged prefill, prefix reuse, and
-chunked prefill. The best no-chunk path is **1.37x behind vLLM at 6k** and **1.22x behind
-at 20k**; paged decode is the strongest implemented win and paged prefill is a memory win.
-Chunked prefill is slower on both engines for these single prompts, so it is not the parity
-lever.
+Implemented stack: CUDA graph capture, paged decode, paged prefill, prefix reuse, chunked
+prefill, and an opt-in `torch.compile` fusion. The best no-chunk path is **1.235x behind vLLM
+at 6k** (compiled: 1018 vs 824 ms) and **1.22x behind at 20k** (3398 vs 2794 ms). Paged decode
+is the strongest implemented win; paged prefill is a memory win; chunked prefill is slower on
+both engines for these single prompts.
 
 ## Current gap
 
-Current best is 1.37x behind vLLM at 6k and 1.22x behind at 20k. The paged cache layout is
-not the main remaining gap: paged decode is already the strongest win, and paged prefill is
-time-neutral with a memory advantage. The remaining gap is in the model forward kernels and
-the surrounding execution path.
+Current best is 1.235x behind vLLM at 6k (compiled) and 1.22x behind at 20k. The paged cache
+layout is not the main remaining gap: paged decode is already the strongest win, and paged
+prefill is time-neutral with a memory advantage. The remaining gap is in the model forward
+kernels and the surrounding execution path.
+
+The optional `torch.compile` fusion already delivers **1.11x total / 1.11x prefill / 1.12x
+decode** at 6k (1129 -> 1018 ms) and closes the vLLM gap from 1.37x to 1.235x; it costs
++14.8% peak memory and is only useful with graph capture. The 20k compile run is still being
+finalized.
 
 ### Gap decomposition
 
@@ -22,17 +27,23 @@ vLLM no-chunk prefill+first-token and decode timings (same KV budgets):
 
 | Workload | vLLM prefill+1 | vLLM decode | DeepSpeed prefill | DeepSpeed decode | Prefill gap | Decode gap |
 |---|---:|---:|---:|---:|---:|---:|
-| 4B 6k | 551.2 ms | 18.2 ms/token | 719.4 ms | 24.4 ms/token | **168 ms (59%)** | 117 ms (41%) |
-| 4B 20k | 2647.9 ms | 20.9 ms/token | 3071.1 ms | 33.9 ms/token | **423 ms (77%)** | 125 ms (23%) |
+| 4B 6k, compiled | 551.2 ms | 18.2 ms/token | 649.9 ms | 21.8 ms/token | **99 ms (63%)** | 58 ms (37%) |
+| 4B 20k, uncompiled | 2647.9 ms | 20.9 ms/token | 3071.1 ms | 33.9 ms/token | **423 ms (77%)** | 125 ms (23%) |
 
 The prefill is the larger absolute gap, especially at 20k; decode is the larger per-token
 gap. A decode-only optimization cannot close 20k.
 
-### 1. Fuse/compile the model forward (highest leverage)
+### 1. Fuse/compile the model forward (partially implemented; highest leverage)
 
-vLLM uses torch.compile, fused RMSNorm/RoPE/residual/MLP kernels, and an optimized attention
-backend. The DeepSpeed path still executes the HuggingFace Qwen3 layer stack and a Python
-attention shim per layer. The decode roofline for 4B weights on an A40 is roughly 11.5 ms/token;
+**Implemented:** optional `torch.compile(mode="max-autotune-no-cudagraphs")` with graph
+capture, `--torch-compile`. It gives 1.11x total at 6k (1129 -> 1018 ms), 1.11x prefill,
+1.12x decode, and closes the vLLM gap from 1.37x to 1.235x, at +14.8% peak memory.
+
+**Remaining:** the compile still hits per-layer recompile limits in the paged-attention shim
+and the blocked-flash custom op. Eliminate those graph breaks, fuse the custom attention
+into the compiled graph, and extend the same treatment to 20k. vLLM uses torch.compile, fused
+RMSNorm/RoPE/residual/MLP kernels, and an optimized attention backend. The DeepSpeed path
+still executes the HuggingFace Qwen3 layer stack and a Python attention shim per layer. The decode roofline for 4B weights on an A40 is roughly 11.5 ms/token;
 our 6k decode is 24.4 ms/token and 20k is 34.2 ms/token, while vLLM is materially closer to the
 roofline. Work items:
 
