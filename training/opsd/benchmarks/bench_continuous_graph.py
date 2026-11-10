@@ -112,6 +112,7 @@ def main():
     parser.add_argument("--graph-capture-batch-sizes", default="")
     parser.add_argument("--use-paged-cache", action="store_true")
     parser.add_argument("--paged-block-size", type=int, default=0)
+    parser.add_argument("--enable-paged-prefill", action="store_true")
     parser.add_argument("--enable-prefix-reuse", action="store_true")
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument("--top-p", type=float, default=1.0)
@@ -147,6 +148,7 @@ def main():
             graph_capture_batch_sizes=ladder or None,
             use_paged_cache=args.use_paged_cache,
             paged_block_size=args.paged_block_size or None,
+            enable_paged_prefill=args.enable_paged_prefill,
             enable_prefix_reuse=args.enable_prefix_reuse,
         ),
     )
@@ -203,6 +205,7 @@ def main():
         "graph_capture_batch_sizes": list(ladder),
         "use_paged_cache": args.use_paged_cache,
         "paged_block_size": args.paged_block_size or None,
+        "enable_paged_prefill": args.enable_paged_prefill,
         "enable_prefix_reuse": args.enable_prefix_reuse,
         "temperature": args.temperature,
         "top_p": args.top_p,

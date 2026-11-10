@@ -2,7 +2,8 @@
 
 Implementation: `PagedAttentionCache` now accepts `q_len > 1`; `HybridEngineRollout`
 prefills directly into the paged block table in `prefill_chunk_size` windows. The dense
-staging cache and the prefill-to-paged copy are not used on the paged path.
+staging cache and the prefill-to-paged copy are not used when `enable_paged_prefill=True`
+(the benchmark flag is `--enable-paged-prefill`).
 
 Prefix reuse: complete prompt blocks are hashed with a chained blake2b digest. A new row
 points at a matching block chain with refcounts incremented, then only the uncached suffix
@@ -76,7 +77,8 @@ python benchmarks/bench_continuous_graph.py --model Qwen/Qwen3-4B \
   --data data/prefix_reuse_6k.jsonl --batch-size 2 --continuous-batch-size 2 \
   --max-prompt-length 6144 --max-new-tokens 8 --warmup 0 --iterations 1 \
   --enable-chunked-prefill --prefill-chunk-size 512 --temperature 0.0 \
-  --top-p 0.9 --seed 0 --no-graph-capture --use-paged-cache --save-response-ids \
+  --top-p 0.9 --seed 0 --no-graph-capture --use-paged-cache \
+  --enable-paged-prefill --save-response-ids \
   --output runs/prefix_no_reuse.json
 
 # paged prefill + prefix reuse
@@ -84,7 +86,8 @@ python benchmarks/bench_continuous_graph.py --model Qwen/Qwen3-4B \
   --data data/prefix_reuse_6k.jsonl --batch-size 2 --continuous-batch-size 2 \
   --max-prompt-length 6144 --max-new-tokens 8 --warmup 0 --iterations 1 \
   --enable-chunked-prefill --prefill-chunk-size 512 --temperature 0.0 \
-  --top-p 0.9 --seed 0 --no-graph-capture --use-paged-cache --enable-prefix-reuse \
+  --top-p 0.9 --seed 0 --no-graph-capture --use-paged-cache \
+  --enable-paged-prefill --enable-prefix-reuse \
   --save-response-ids --output runs/prefix_reuse.json
 
 # 20k paged prefill
@@ -92,7 +95,8 @@ python benchmarks/bench_continuous_graph.py --model Qwen/Qwen3-4B \
   --data data/longbench_20k.jsonl --batch-size 1 --continuous-batch-size 1 \
   --max-prompt-length 20480 --max-new-tokens 8 --warmup 0 --iterations 1 \
   --enable-chunked-prefill --prefill-chunk-size 512 --temperature 0.0 \
-  --top-p 0.9 --seed 0 --no-graph-capture --use-paged-cache --save-response-ids \
+  --top-p 0.9 --seed 0 --no-graph-capture --use-paged-cache \
+  --enable-paged-prefill --save-response-ids \
   --output runs/paged_prefill_20k_b1.json
 
 # 20k dense prefill

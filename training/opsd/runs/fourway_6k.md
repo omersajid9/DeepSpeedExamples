@@ -20,6 +20,22 @@ replayed them during the measured iteration.
 - The paged path uses 97/97 blocks for the single row (`block_utilization=1.0`), block size 64.
 - The 25.86 ms/token decode is essentially the plan's 25 ms phase-4 target (within 3.4%).
 
+## Paged prefill on the same four-way path
+
+The opt-in `--enable-paged-prefill` path removes the dense prefill staging cache and the
+prefill-to-paged copy. Same 6k prompt, graph capture, chunk 512, Gumbel sampler, 16 new tokens,
+warmup 1:
+
+| Cache / prefill | Prefill ms | Decode ms/token | Total ms | Tokens/s | Peak MiB | SHA |
+|---|---:|---:|---:|---:|---:|---|
+| dense prefill + copy | 1381.6 | 388.7 / 16 = 24.3 | 1809.2 | 8.84 | 9511.6 | `d4a324e9…` |
+| paged prefill | **822.7** | **389.3 / 16 = 24.3** | **1233.8** | **12.97** | 9530.0 | `d4a324e9…` |
+
+Paged prefill cuts prefill 1.68x and end-to-end 1.47x versus the dense-staging copy on the
+graph path, with token-identical output. The no-graph paged-prefill comparison and prefix
+reuse are in `runs/paged_prefill_prefix.md`. The feature is opt-in to keep the previous
+dense-prefill graph path available when prefill staging/capture is faster for a workload.
+
 ## Accuracy verification
 
 `scripts/verify_rollout_accuracy.py` compares the two result files:
