@@ -64,14 +64,27 @@
         "baseline": 27430.38818359375,
         "optimized": 24868.173828125
       }
+    },
+    "qwen3-8b__20k": {
+      "model": "qwen3-8b",
+      "workload": "20k",
+      "continuous_batch_size": 2,
+      "status": "token_mismatch",
+      "baseline_sha": "efaa40d6a75e298490a56f61f8fc99aeacd0f7f304bc4cfe69c34ce1cdbe7b13",
+      "optimized_sha": "f67969837d3fa63579e980dedebe6cfef58610b80321cc6c873cf7c7f5f90688",
+      "token_match": false,
+      "peak_mb": {
+        "baseline": 32153.85546875,
+        "optimized": 27896.08740234375
+      }
     }
   },
   "config": {
     "opsd_dir": "/workspace/DeepSpeedExamples/training/opsd",
-    "out_dir": "runs/sweep_2026-11-10",
-    "continuous_batch_size": 3,
-    "models": "qwen3-4b,qwen3-8b,qwen3.5-4b,qwen3.5-9b",
-    "workloads": "20k,10k,longbench,retool",
+    "out_dir": "/workspace/DeepSpeedExamples/training/opsd/runs/sweep_2026-11-10",
+    "continuous_batch_size": 2,
+    "models": "qwen3-8b",
+    "workloads": "20k",
     "arms": "baseline,optimized",
     "warmup": null,
     "iterations": null,
