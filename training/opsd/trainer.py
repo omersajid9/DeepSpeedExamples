@@ -22,6 +22,7 @@ The trainer itself contains no DeepSpeed-specific control flow beyond the
 stage, offload, hybrid engine) is owned entirely by the DeepSpeed JSON config.
 """
 
+import json
 import os
 import time
 from abc import ABC, abstractmethod
@@ -99,6 +100,7 @@ class OPSDTrainer(RLHFTrainer):
     # ------------------------------------------------------------------
 
     def _train_step(self, batch) -> dict:
+        get_accelerator().reset_peak_memory_stats()
         t_start = time.time()
 
         prompt_ids = batch["prompt_ids"].to(self.device, non_blocking=True)
@@ -116,6 +118,7 @@ class OPSDTrainer(RLHFTrainer):
             top_p=self.cfg.rollout.top_p,
             top_k=self.cfg.rollout.top_k,
             n_samples_per_prompt=self.cfg.rollout.n_samples_per_prompt,
+            continuous_batch_size=self.cfg.rollout.continuous_batch_size,
         )
         roll = self.rollout.generate(
             RolloutRequest(prompt_ids=prompt_ids, prompt_attention_mask=prompt_attn),
@@ -125,6 +128,8 @@ class OPSDTrainer(RLHFTrainer):
         attention_mask = roll.attention_mask.to(self.device, non_blocking=True)
         response_start_idx = roll.response_start_idx.to(self.device, non_blocking=True)
         response_mask = build_response_mask(response_start_idx, attention_mask)
+        rollout_profile = self.rollout.get_last_profile()
+        continuous_stats = self.rollout.get_last_continuous_stats()
         t_rollout = time.time() - t_start
 
         # --- Phase 1: teacher forward → host-cached logits ----------------
@@ -182,6 +187,9 @@ class OPSDTrainer(RLHFTrainer):
             "student_s": t_student,
             "step_s": time.time() - t_start,
             "response_tokens": int(mask_shifted.sum().item()),
+            "rollout_profile": rollout_profile,
+            "continuous_stats": continuous_stats,
+            "peak_mem_mb": get_accelerator().max_memory_allocated() / (1024**2),
         }
 
     # ------------------------------------------------------------------
@@ -189,6 +197,11 @@ class OPSDTrainer(RLHFTrainer):
     # ------------------------------------------------------------------
 
     def _maybe_log(self, metrics: dict) -> None:
+        os.makedirs(self.cfg.training.save_dir, exist_ok=True)
+        metrics_path = os.path.join(self.cfg.training.save_dir, "step_metrics.jsonl")
+        with open(metrics_path, "a") as f:
+            f.write(json.dumps({"step": self.step, **metrics}) + "\n")
+
         if self.step % self.cfg.training.logging_steps != 0:
             return
         if not _is_rank_zero():

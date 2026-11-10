@@ -23,6 +23,8 @@ class RolloutConfig(_BaseRolloutConfig):
     top_p: float = 1.0
     top_k: int = -1
     n_samples_per_prompt: int = 1
+    continuous_batch_size: Optional[int] = None
+    enable_profiling: bool = False
 
 
 @dataclass
