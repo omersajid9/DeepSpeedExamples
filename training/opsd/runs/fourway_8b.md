@@ -161,3 +161,22 @@ are active.
   is not a valid sampling criterion. The greedy ReTool check below is the accuracy test for the
   graph/chunk/paged path.
 
+### ReTool greedy accuracy
+
+| Cache | Prefill ms | Decode ms/step | Total ms | Tokens/s | Peak MiB |
+|---|---:|---:|---:|---:|---:|
+| Dense static | 1790.8 | 72.15 | 41029.3 | 199.66 | 20669.9 |
+| Paged | 1785.2 | 39.25 | 24580.0 | 333.28 | 20786.9 |
+
+The greedy check does **not** pass token-exact parity at this batch/sequence length:
+
+- only **1 of 16 rows** is exact; the first mismatch is row 0 at response token index 71
+  (dense token 1477 vs paged 11047);
+- median common prefix is 104 tokens (min 11, max 512); 2371/8192 generated tokens match
+  (29%), because once a greedy token flips the continuation necessarily diverges;
+- the 6k batch-1 greedy check and the 10k/20k sampled checks are exact, so this is a
+  long-decode/batch-16 numeric sensitivity, not a graph-capture failure.
+
+This is the main accuracy caveat of the current paged path: ReTool's 16 x 512 greedy decode does
+not reproduce the dense token stream after the first paged-attention numeric flip.
+
