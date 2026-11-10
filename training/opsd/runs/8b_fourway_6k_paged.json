@@ -1,0 +1,156 @@
+{
+  "model": "Qwen/Qwen3-8B",
+  "model_type": "qwen3",
+  "is_hybrid": false,
+  "data": "data/longbench_20k.jsonl",
+  "batch_size": 1,
+  "continuous_batch_size": 1,
+  "max_prompt_length": 6144,
+  "max_new_tokens": 16,
+  "enable_chunked_prefill": true,
+  "prefill_chunk_size": 512,
+  "graph_capture": true,
+  "graph_capture_batch_sizes": [],
+  "use_paged_cache": true,
+  "paged_block_size": null,
+  "temperature": 0.7,
+  "top_p": 0.9,
+  "top_k": -1,
+  "warmup_peak_memory_mb": 17501.60107421875,
+  "warmup_stats": {
+    "cache_capacity": 6160,
+    "peak_cache_length": 6159,
+    "cache_memory_bytes": 1821438136,
+    "graph_capture_ladder": [
+      1
+    ],
+    "graph_captures": 2,
+    "decode_bucket_steps": 15,
+    "decode_padded_rows": 0,
+    "decode_bucket_widths": {
+      "1": 15
+    },
+    "prefill_bucket_steps": 12,
+    "prefill_padded_rows": 0,
+    "prefill_bucket_widths": {
+      "1": 12
+    },
+    "trim_count": 0,
+    "trimmed_columns": 0,
+    "trim_latency_ms": 0.0,
+    "trim_bytes_moved": 0,
+    "decode_steps": 15,
+    "chunked_prefill_chunks": 12,
+    "chunked_prefill_staging_bytes": 905969664,
+    "end_to_end_ms": 3988.4106339886785,
+    "tokens_per_second": 4.011623041933103,
+    "trim_frequency": 0.0,
+    "paged_cache": true,
+    "paged_block_size": 64,
+    "blocks_in_use": 97,
+    "block_utilization": 1.0
+  },
+  "peak_memory_mb": 17410.10693359375,
+  "peak_reserved_mb": 17718.0,
+  "iterations": [
+    {
+      "wall_ms": 2493.381201289594,
+      "profile": {
+        "prompt_expansion_ms": 0.0,
+        "generation_ms": 2492.7049400284886,
+        "prefill_forward_ms": 1876.8237521871924,
+        "decode_forward_ms": 576.8376439809799,
+        "generation_overhead_ms": 39.04354386031628,
+        "num_prefill_forwards": 12,
+        "num_decode_forwards": 15,
+        "scheduler_overhead_ms": 0.6529116071760654,
+        "cache_management_overhead_ms": 1895.7008109427989,
+        "post_processing_ms": 0.31651509925723076,
+        "total_ms": 2493.021455127746,
+        "num_generated_tokens": 16,
+        "tokens_per_second": 6.417915083358213,
+        "batch_size": 1,
+        "num_samples_per_prompt": 1,
+        "prompt_length": 6144,
+        "response_length": 16,
+        "active_batch_size": 1,
+        "continuous_batch_size": 1
+      },
+      "continuous_stats": {
+        "cache_capacity": 6160,
+        "peak_cache_length": 6159,
+        "cache_memory_bytes": 1821438136,
+        "graph_capture_ladder": [
+          1
+        ],
+        "graph_captures": 0,
+        "decode_bucket_steps": 15,
+        "decode_padded_rows": 0,
+        "decode_bucket_widths": {
+          "1": 15
+        },
+        "prefill_bucket_steps": 12,
+        "prefill_padded_rows": 0,
+        "prefill_bucket_widths": {
+          "1": 12
+        },
+        "trim_count": 0,
+        "trimmed_columns": 0,
+        "trim_latency_ms": 0.0,
+        "trim_bytes_moved": 0,
+        "decode_steps": 15,
+        "chunked_prefill_chunks": 12,
+        "chunked_prefill_staging_bytes": 905969664,
+        "end_to_end_ms": 2493.028834927827,
+        "tokens_per_second": 6.417896085210422,
+        "trim_frequency": 0.0,
+        "paged_cache": true,
+        "paged_block_size": 64,
+        "blocks_in_use": 97,
+        "block_utilization": 1.0
+      },
+      "response_sha256": "d4a324e903ed2fe8e2d5b676b43ec94a22efbbdd5663c30a310d93d0144cf02c",
+      "response_logprobs": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          -0.7864127159118652,
+          -0.4607417583465576,
+          -0.4351961612701416
+        ]
+      ]
+    }
+  ],
+  "response_ids": [
+    [
+      2100,
+      46,
+      12820,
+      11,
+      8110,
+      553,
+      28738,
+      82724,
+      748,
+      1736,
+      16839,
+      6165,
+      13,
+      2524,
+      568,
+      320
+    ]
+  ],
+  "response_sha256": "d4a324e903ed2fe8e2d5b676b43ec94a22efbbdd5663c30a310d93d0144cf02c"
+}
