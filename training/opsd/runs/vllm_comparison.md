@@ -22,12 +22,14 @@ chunking disabled. Earlier vLLM runs with `max_num_batched_tokens=512` were 954.
 | 6k, 16 new | DeepSpeed + paged decode | 1147.8 | 13.94 | `d4a324e9…` |
 | 6k, 16 new | DeepSpeed + paged prefill/decode | 1128.6 | 14.18 | `d4a324e9…` |
 | 6k, 16 new | DeepSpeed + paged prefill/decode + torch.compile | **1017.8** | **15.72** | `d4a324e9…` |
+| 6k, 16 new | DeepSpeed + FlashInfer prefill | 1134.7 | 14.10 | `d4a324e9…` |
 | 6k, 16 new | vLLM no-chunk | **823.6** | **19.43** | `d4a324e9…` |
 | 20k, 8 new greedy | DeepSpeed dense eager | 3852.9 | 2.08 | `c4291b80…` |
 | 20k, 8 new greedy | DeepSpeed + CUDA graph | 3777.5 | 2.12 | `c4291b80…` |
 | 20k, 8 new greedy | DeepSpeed + paged decode | 3397.9 | 2.35 | `c4291b80…` |
 | 20k, 8 new greedy | DeepSpeed + paged prefill/decode | 3421.5 | 2.34 | `c4291b80…` |
 | 20k, 8 new greedy | DeepSpeed + paged prefill/decode + torch.compile | **3208.0** | **2.49** | `c4291b80…` |
+| 20k, 8 new greedy | DeepSpeed + FlashInfer prefill | 3217.9 | 2.49 | `c4291b80…` |
 | 20k, 8 new greedy | vLLM no-chunk | **2794.4** | **2.86** | `c4291b80…` |
 
 ## Distance to vLLM
@@ -101,5 +103,6 @@ DeepSpeed rows: `runs/ablation_6k_*_nochunk.json`,
 `runs/ablation_20k_*_nochunk.json`; full attribution in
 `runs/optimization_ablation.md`. Split runs: `runs/vllm_6k_nochunk_new1.json`,
 `runs/vllm_20k_nochunk_new1.json`. Compiled runs: `runs/compile_6k_graph.json`,
-`runs/compile_20k_graph.json`. Forward-looking parity plan:
+`runs/compile_20k_graph.json`, `runs/flashinfer_6k*.json`, `runs/flashinfer_20k.json`.
+Forward-looking parity plan:
 `runs/vllm_parity_optimizations.md`.

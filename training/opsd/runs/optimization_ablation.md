@@ -242,6 +242,22 @@ saving).
 - Reuse is limited to live rows in the same cache. There is no graph-safe prefix path,
   no cross-generate retention, no `prefix_id` session, and no weight-version salt.
 
+## FlashInfer prefill backend (vLLM-grade attention attempt)
+
+An opt-in `--flashinfer-prefill` backend replaces the blocked-flash prefill call with
+FlashInfer's `BatchPrefillWithPagedKVCacheWrapper`; decode remains on `BlockedFlashAttn`.
+The cache layout, block table, paged prefill, decode graph, and sampler are unchanged.
+
+| Workload | Blocked prefill | FlashInfer prefill | Total gain | Peak MiB | Tokens |
+|---|---:|---:|---:|---:|---|
+| 4B 6k | 1129.9 ms | 1134.7 ms | **none (-0.4%)** | 9202 vs 9066 | exact |
+| 4B 20k | 3421.5 ms | 3217.9 ms | **1.063x** | 12086 vs 11975 | exact |
+
+At 6k FlashInfer is slightly slower; at 20k it saves 204 ms of prefill. It does not close
+the gap as much as `torch.compile`: 20k is 1.152x vs vLLM (compiled is 1.148x), and 6k is
+1.378x. The decode path is still `BlockedFlashAttn`; full FlashInfer attention would require
+porting the decode wrapper and graph-safe planning.
+
 ## Compiled sampler
 
 The opt-in `--compiled-sampler` path wraps the top-k/top-p/Gumbel draw in
@@ -321,3 +337,4 @@ The forward-looking optimization plan has been split into
 - `runs/vllm_comparison.md`
 - `runs/vllm_6k_nochunk_new1.json`, `runs/vllm_20k_nochunk_new1.json`
 - `runs/compile_6k_graph.json`, `runs/compile_20k_graph.json`
+- `runs/flashinfer_6k.json`, `runs/flashinfer_6k_baseline.json`, `runs/flashinfer_20k.json`

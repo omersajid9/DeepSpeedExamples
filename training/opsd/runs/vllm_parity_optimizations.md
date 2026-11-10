@@ -89,6 +89,13 @@ This is the most likely route to close most of the 1.2-1.4x gap.
 
 ### 2. Replace the attention path with a vLLM-grade backend
 
+**Implemented (prefill only):** optional `--flashinfer-prefill` uses FlashInfer's
+`BatchPrefillWithPagedKVCacheWrapper` with the existing block table. It is neutral at 6k
+(-0.4%) and gives **1.063x total at 20k** (3421.5 -> 3217.9 ms), token-exact, with similar
+peak memory. Decode still uses `BlockedFlashAttn`, and the 6k/20k gap remains 1.378x/1.152x
+to vLLM, so this is not yet a full replacement.
+
+
 Our `BlockedFlashAttn` is good on decode (1.5-2.5x over dense SDPA) but prefill still runs a
 blocked kernel and a Python atom/shim path. For parity:
 
