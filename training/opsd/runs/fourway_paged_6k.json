@@ -1,0 +1,156 @@
+{
+  "model": "Qwen/Qwen3-4B",
+  "model_type": "qwen3",
+  "is_hybrid": false,
+  "data": "data/longbench_20k.jsonl",
+  "batch_size": 1,
+  "continuous_batch_size": 1,
+  "max_prompt_length": 6144,
+  "max_new_tokens": 16,
+  "enable_chunked_prefill": true,
+  "prefill_chunk_size": 512,
+  "graph_capture": true,
+  "graph_capture_batch_sizes": [],
+  "use_paged_cache": true,
+  "paged_block_size": null,
+  "temperature": 0.7,
+  "top_p": 0.9,
+  "top_k": -1,
+  "warmup_peak_memory_mb": 9599.63720703125,
+  "warmup_stats": {
+    "cache_capacity": 6160,
+    "peak_cache_length": 6159,
+    "cache_memory_bytes": 1821438136,
+    "graph_capture_ladder": [
+      1
+    ],
+    "graph_captures": 2,
+    "decode_bucket_steps": 15,
+    "decode_padded_rows": 0,
+    "decode_bucket_widths": {
+      "1": 15
+    },
+    "prefill_bucket_steps": 12,
+    "prefill_padded_rows": 0,
+    "prefill_bucket_widths": {
+      "1": 12
+    },
+    "trim_count": 0,
+    "trimmed_columns": 0,
+    "trim_latency_ms": 0.0,
+    "trim_bytes_moved": 0,
+    "decode_steps": 15,
+    "chunked_prefill_chunks": 12,
+    "chunked_prefill_staging_bytes": 905969664,
+    "end_to_end_ms": 3524.428706150502,
+    "tokens_per_second": 4.539742844585933,
+    "trim_frequency": 0.0,
+    "paged_cache": true,
+    "paged_block_size": 64,
+    "blocks_in_use": 97,
+    "block_utilization": 1.0
+  },
+  "peak_memory_mb": 9511.64306640625,
+  "peak_reserved_mb": 9688.0,
+  "iterations": [
+    {
+      "wall_ms": 1820.8051989786327,
+      "profile": {
+        "prompt_expansion_ms": 0.0,
+        "generation_ms": 1820.0210579670966,
+        "prefill_forward_ms": 1381.4621781930327,
+        "decode_forward_ms": 387.9598933272064,
+        "generation_overhead_ms": 50.59898644685745,
+        "num_prefill_forwards": 12,
+        "num_decode_forwards": 15,
+        "scheduler_overhead_ms": 0.6595714949071407,
+        "cache_management_overhead_ms": 1405.261046718806,
+        "post_processing_ms": 0.37554604932665825,
+        "total_ms": 1820.3966040164232,
+        "num_generated_tokens": 16,
+        "tokens_per_second": 8.789293478519173,
+        "batch_size": 1,
+        "num_samples_per_prompt": 1,
+        "prompt_length": 6144,
+        "response_length": 16,
+        "active_batch_size": 1,
+        "continuous_batch_size": 1
+      },
+      "continuous_stats": {
+        "cache_capacity": 6160,
+        "peak_cache_length": 6159,
+        "cache_memory_bytes": 1821438136,
+        "graph_capture_ladder": [
+          1
+        ],
+        "graph_captures": 0,
+        "decode_bucket_steps": 15,
+        "decode_padded_rows": 0,
+        "decode_bucket_widths": {
+          "1": 15
+        },
+        "prefill_bucket_steps": 12,
+        "prefill_padded_rows": 0,
+        "prefill_bucket_widths": {
+          "1": 12
+        },
+        "trim_count": 0,
+        "trimmed_columns": 0,
+        "trim_latency_ms": 0.0,
+        "trim_bytes_moved": 0,
+        "decode_steps": 15,
+        "chunked_prefill_chunks": 12,
+        "chunked_prefill_staging_bytes": 905969664,
+        "end_to_end_ms": 1820.4047242179513,
+        "tokens_per_second": 8.78925427249351,
+        "trim_frequency": 0.0,
+        "paged_cache": true,
+        "paged_block_size": 64,
+        "blocks_in_use": 97,
+        "block_utilization": 1.0
+      },
+      "response_sha256": "d4a324e903ed2fe8e2d5b676b43ec94a22efbbdd5663c30a310d93d0144cf02c",
+      "response_logprobs": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          -0.3432239592075348,
+          -0.502288818359375
+        ]
+      ]
+    }
+  ],
+  "response_ids": [
+    [
+      2100,
+      46,
+      12820,
+      11,
+      8110,
+      553,
+      28738,
+      82724,
+      748,
+      1736,
+      16839,
+      6165,
+      13,
+      2524,
+      568,
+      320
+    ]
+  ],
+  "response_sha256": "d4a324e903ed2fe8e2d5b676b43ec94a22efbbdd5663c30a310d93d0144cf02c"
+}
