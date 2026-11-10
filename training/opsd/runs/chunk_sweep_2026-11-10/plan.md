@@ -44,10 +44,16 @@ Consequences the sweep should expose:
 - Chunking cannot beat a single full prefill on standalone prefill throughput; it
   can only recover time by overlapping with decode rows that are already running.
   With 32 new tokens the overlap window is tiny, so the curve should approach
-  `graph_only` as the chunk grows and lose badly at 256.
-- Each chunk is a forward + staging-cache copy. Larger chunks mean fewer forwards
-  and fewer copies for the same prompt, so time should fall monotonically until the
-  prompt fits one chunk (8192 covers 5k; 10k still needs two).
+  `graph_only` only when the chunk divides the prompt; otherwise the last-window
+  padding can make a larger chunk worse (4096 at 5k, 8192 at 10k), and small
+  chunks lose badly.
+- Each chunk is a forward + staging-cache copy. Fewer forwards help, but the last
+  window slides back to end at the prompt, so a chunk that does not divide the
+  prompt length computes a full chunk width for a partial remainder. The curve is
+  not monotonic: 4096 is worse than 2048 at 5k; 8192 is worse than 4096 at 10k.
+  The best chunk is the largest exact divisor of the prompt length, not the largest
+  chunk. The 5k 8192 arm is not chunked (5120 <= 8192); it is graph-only with the
+  staging cache allocated.
 - The staging cache is sized to the prompt, not the chunk; `staging_bytes` stays
   roughly constant across chunk sizes, while chunk count scales as
   `ceil(prompt_len / chunk_size)`.
