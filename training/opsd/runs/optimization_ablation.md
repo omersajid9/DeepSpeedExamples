@@ -30,8 +30,8 @@ ablations from the confounded four-way and chunked-prefill runs.
   prefill latency (-11.5%) but only +1.3% throughput; it hurts prefill-bound 5k/10k
   (17.8-45.3% slower) and adds 9.3% at 6k and 13.3% at 20k versus the no-chunk path.
 - **Best current vs vLLM:** **1.235x slower at 4B/6k** (compiled, 1018 vs 824 ms) and
-  **1.22x slower at 4B/20k** (3398 vs 2794 ms). Before the clean optimization stack,
-  dense eager was 1.84x / 1.38x slower.
+  **1.148x slower at 4B/20k** (compiled, 3208 vs 2794 ms). Before the clean optimization
+  stack, dense eager was 1.84x / 1.38x slower.
 
 ## Clean 4B 6k ablation (no chunked prefill)
 
@@ -78,10 +78,16 @@ graph breaks dominate.
 - Gap to vLLM improves from **1.37x** to **1.235x** at 6k.
 - Peak memory rises **14.8%** (9091 -> 10436 MiB) because compiled buffers/workspaces are
   retained.
+The 20k compiled run is 3421.5 -> 3208.0 ms (1.067x total; prefill 3129.2 -> 2933.0,
+decode 273.9 -> 254.9), closing the vLLM gap from 1.224x to **1.148x**, at +35.6% peak
+memory (11975 -> 16244 MiB).
+
 - The compile path emits per-layer recompile warnings from the paged-attention shim and
   the blocked-flash custom op; the remaining fusion headroom is in eliminating those graph
   breaks, not in another cache change.
-- Compile warmup takes roughly 2-3 minutes on this A40; the measured iteration excludes it.
+- Compile warmup took ~172 s at 6k and ~276 s at 20k on this A40 (including autotune); the
+  measured iteration excludes it. The 20k compiled peak is materially higher, so compile
+  should be judged as a latency option, not a memory option.
 
 ## Clean 4B 20k ablation (no chunked prefill)
 
@@ -94,6 +100,7 @@ one measured iteration.
 | + CUDA graph capture | 3067.5 | 688.4 | 3777.5 | 2.12 | 14713.6 | `c4291b80…` |
 | + paged decode | 3071.1 | 271.5 | **3397.9** | **2.35** | 14717.3 | `c4291b80…` |
 | + paged prefill | 3129.2 | 273.9 | 3421.5 | 2.34 | **11975.2** | `c4291b80…` |
+| + torch.compile | 2933.0 | 254.9 | **3208.0** | **2.49** | 16244.2 | `c4291b80…` |
 | vLLM 0.33 no-chunk reference | — | — | **2794.4** | **2.86** | — | `c4291b80…` |
 
 | Increment | Total speedup | Decode speedup | Other effect |
@@ -101,7 +108,8 @@ one measured iteration.
 | CUDA graph capture | 1.02x | 1.12x | +16.6 MiB peak |
 | Paged decode (on graph) | 1.11x | **2.53x** | +3.7 MiB peak |
 | Paged prefill (on paged decode) | 0.99x | 0.99x | **-18.6% peak** |
-| Best vs vLLM (no chunk) | **1.22x slower** | — | paged decode is 3398 vs 2794 ms |
+| torch.compile on top | 1.067x | 1.075x | peak 11975 -> 16244 MiB |
+| Best vs vLLM (no chunk) | **1.148x slower** | — | compiled 3208 vs 2794 ms |
 | Dense eager vs vLLM (no chunk) | **1.38x slower** | — | — |
 
 At 20k, **paged decode is the fastest path** (3398 ms); paged prefill trades 24 ms
@@ -252,14 +260,14 @@ DeepSpeed pool at 6k; results are in `runs/vllm_comparison.md`.
 
 | Workload | Before clean optimization (dense eager) | Best DeepSpeed | vLLM | Best vs vLLM |
 |---|---:|---:|---:|---:|
-| 4B 6k, 16 new, no chunk | 1515.9 ms | **1128.6 ms** | **823.6 ms** | **1.37x slower** |
-| 4B 20k, 8 new greedy | 3852.9 ms | **3397.9 ms** | **2794.4 ms** | **1.22x slower** |
+| 4B 6k, 16 new, no chunk | 1515.9 ms | **1017.8 ms (compiled)** | **823.6 ms** | **1.235x slower** |
+| 4B 20k, 8 new greedy | 3852.9 ms | **3208.0 ms (compiled)** | **2794.4 ms** | **1.148x slower** |
 
 Intermediate 6k ratios to no-chunk vLLM: dense graph 1.61x slower, paged decode 1.39x
-slower, paged prefill 1.37x slower. Intermediate 20k: dense graph 1.35x slower, paged
-decode 1.22x slower, paged prefill 1.22x slower. The earlier 6k 1.18x and 20k 1.01x
-figures compared our no-chunk path to vLLM with chunked prefill, which is not the same
-setting and was slower for vLLM.
+slower, paged prefill 1.37x slower, compiled 1.235x slower. Intermediate 20k: dense graph
+1.35x slower, paged decode 1.22x slower, paged prefill 1.22x slower, compiled 1.148x
+slower. The earlier 6k 1.18x and 20k 1.01x figures compared our no-chunk path to vLLM
+with chunked prefill, which is not the same setting and was slower for vLLM.
 
 The 6k 16-token and 20k greedy response tokens are identical between DeepSpeed and vLLM.
 At 20k with `T=0.7`, the first four sampled tokens agree and the fifth diverges; vLLM's
@@ -304,3 +312,4 @@ The forward-looking optimization plan has been split into
 - `runs/rollout_matrix_2026-11-10/summary.md`
 - `runs/vllm_comparison.md`
 - `runs/vllm_6k_nochunk_new1.json`, `runs/vllm_20k_nochunk_new1.json`
+- `runs/compile_6k_graph.json`, `runs/compile_20k_graph.json`
