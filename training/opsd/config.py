@@ -25,6 +25,8 @@ class RolloutConfig(_BaseRolloutConfig):
     n_samples_per_prompt: int = 1
     continuous_batch_size: Optional[int] = None
     enable_profiling: bool = False
+    enable_chunked_prefill: bool = False
+    prefill_chunk_size: int = 512
 
 
 @dataclass

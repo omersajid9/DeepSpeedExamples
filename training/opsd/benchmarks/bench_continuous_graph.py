@@ -64,6 +64,8 @@ def main():
     parser.add_argument("--warmup", type=int, default=1)
     parser.add_argument("--iterations", type=int, default=3)
     parser.add_argument("--output", default="runs/continuous_graph_baseline.json")
+    parser.add_argument("--enable-chunked-prefill", action="store_true")
+    parser.add_argument("--prefill-chunk-size", type=int, default=512)
     args = parser.parse_args()
 
     device = torch.device(get_accelerator().current_device_name())
@@ -83,7 +85,12 @@ def main():
     rollout = HybridEngineRollout(
         SimpleNamespace(module=model),
         tokenizer,
-        cfg=HybridEngineRolloutConfig(use_graph_capture=True, enable_profiling=True),
+        cfg=HybridEngineRolloutConfig(
+            use_graph_capture=True,
+            enable_profiling=True,
+            enable_chunked_prefill=args.enable_chunked_prefill,
+            prefill_chunk_size=args.prefill_chunk_size,
+        ),
     )
     sampling = SamplingConfig(
         max_new_tokens=args.max_new_tokens,
@@ -119,6 +126,8 @@ def main():
         "continuous_batch_size": args.continuous_batch_size,
         "max_prompt_length": args.max_prompt_length,
         "max_new_tokens": args.max_new_tokens,
+        "enable_chunked_prefill": args.enable_chunked_prefill,
+        "prefill_chunk_size": args.prefill_chunk_size,
         "graph_capture": True,
         "peak_memory_mb": get_accelerator().max_memory_allocated() / (1024**2),
         "iterations": iterations,

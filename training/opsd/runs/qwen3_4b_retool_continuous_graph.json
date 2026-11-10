@@ -1,0 +1,123 @@
+{
+  "model": "Qwen/Qwen3-4B",
+  "data": "data/retool_prompts.jsonl",
+  "batch_size": 4,
+  "continuous_batch_size": 2,
+  "max_prompt_length": 2048,
+  "max_new_tokens": 512,
+  "graph_capture": true,
+  "peak_memory_mb": 8144.5556640625,
+  "iterations": [
+    {
+      "wall_ms": 24846.32148221135,
+      "profile": {
+        "prompt_expansion_ms": 0.0,
+        "generation_ms": 24842.78756380081,
+        "prefill_forward_ms": 168.52754913270473,
+        "decode_forward_ms": 24074.886543210596,
+        "generation_overhead_ms": 599.3734714575112,
+        "num_prefill_forwards": 2,
+        "num_decode_forwards": 1022,
+        "scheduler_overhead_ms": 23.441241588443518,
+        "cache_management_overhead_ms": 185.11737883090973,
+        "post_processing_ms": 1.752949319779873,
+        "total_ms": 24844.54051312059,
+        "num_generated_tokens": 2048,
+        "tokens_per_second": 82.43259717032946,
+        "batch_size": 4,
+        "num_samples_per_prompt": 1,
+        "prompt_length": 304,
+        "response_length": 512,
+        "active_batch_size": 2,
+        "continuous_batch_size": 2
+      },
+      "continuous_stats": {
+        "cache_capacity": 816,
+        "peak_cache_length": 815,
+        "cache_memory_bytes": 240664560,
+        "trim_count": 0,
+        "trimmed_columns": 0,
+        "trim_latency_ms": 0.0,
+        "trim_bytes_moved": 0,
+        "decode_steps": 1022,
+        "end_to_end_ms": 24844.557553064078,
+        "tokens_per_second": 82.43254063292507,
+        "trim_frequency": 0.0
+      }
+    },
+    {
+      "wall_ms": 24839.93517095223,
+      "profile": {
+        "prompt_expansion_ms": 0.0,
+        "generation_ms": 24836.956057231873,
+        "prefill_forward_ms": 168.52836031466722,
+        "decode_forward_ms": 24073.176813311875,
+        "generation_overhead_ms": 595.2508836053312,
+        "num_prefill_forwards": 2,
+        "num_decode_forwards": 1022,
+        "scheduler_overhead_ms": 23.012107703834772,
+        "cache_management_overhead_ms": 184.98359946534038,
+        "post_processing_ms": 1.3201339170336723,
+        "total_ms": 24838.276191148907,
+        "num_generated_tokens": 2048,
+        "tokens_per_second": 82.45338703214044,
+        "batch_size": 4,
+        "num_samples_per_prompt": 1,
+        "prompt_length": 304,
+        "response_length": 512,
+        "active_batch_size": 2,
+        "continuous_batch_size": 2
+      },
+      "continuous_stats": {
+        "cache_capacity": 816,
+        "peak_cache_length": 815,
+        "cache_memory_bytes": 240664560,
+        "trim_count": 0,
+        "trimmed_columns": 0,
+        "trim_latency_ms": 0.0,
+        "trim_bytes_moved": 0,
+        "decode_steps": 1022,
+        "end_to_end_ms": 24838.283581193537,
+        "tokens_per_second": 82.45336250008258,
+        "trim_frequency": 0.0
+      }
+    },
+    {
+      "wall_ms": 24839.40470032394,
+      "profile": {
+        "prompt_expansion_ms": 0.0,
+        "generation_ms": 24836.552664171904,
+        "prefill_forward_ms": 167.22597694024444,
+        "decode_forward_ms": 24072.777507826686,
+        "generation_overhead_ms": 596.549179404974,
+        "num_prefill_forwards": 2,
+        "num_decode_forwards": 1022,
+        "scheduler_overhead_ms": 23.06212717667222,
+        "cache_management_overhead_ms": 183.83714184165,
+        "post_processing_ms": 1.2876549735665321,
+        "total_ms": 24837.84031914547,
+        "num_generated_tokens": 2048,
+        "tokens_per_second": 82.45483398254088,
+        "batch_size": 4,
+        "num_samples_per_prompt": 1,
+        "prompt_length": 304,
+        "response_length": 512,
+        "active_batch_size": 2,
+        "continuous_batch_size": 2
+      },
+      "continuous_stats": {
+        "cache_capacity": 816,
+        "peak_cache_length": 815,
+        "cache_memory_bytes": 240664560,
+        "trim_count": 0,
+        "trimmed_columns": 0,
+        "trim_latency_ms": 0.0,
+        "trim_bytes_moved": 0,
+        "decode_steps": 1022,
+        "end_to_end_ms": 24837.847359012812,
+        "tokens_per_second": 82.4548106121141,
+        "trim_frequency": 0.0
+      }
+    }
+  ]
+}
