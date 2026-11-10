@@ -64,6 +64,8 @@ def main():
     parser.add_argument("--warmup", type=int, default=1)
     parser.add_argument("--iterations", type=int, default=1)
     parser.add_argument("--gpu-memory-utilization", type=float, default=0.85)
+    parser.add_argument("--kv-cache-memory-gib", type=float, default=0.0,
+                        help="Cap the vLLM KV pool to the DeepSpeed cache's budget.")
     parser.add_argument("--enable-prefix-caching", action="store_true")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
@@ -80,6 +82,8 @@ def main():
         max_num_seqs=args.batch_size,
         max_num_batched_tokens=args.prefill_chunk_size,
         gpu_memory_utilization=args.gpu_memory_utilization,
+        kv_cache_memory_bytes=(int(args.kv_cache_memory_gib * (1024**3))
+                               if args.kv_cache_memory_gib > 0 else None),
         enable_prefix_caching=args.enable_prefix_caching,
         disable_log_stats=True,
         seed=args.seed,
@@ -127,6 +131,8 @@ def main():
         "seed": args.seed,
         "enable_prefix_caching": args.enable_prefix_caching,
         "gpu_memory_utilization": args.gpu_memory_utilization,
+        "kv_cache_memory_bytes": (int(args.kv_cache_memory_gib * (1024**3))
+                                  if args.kv_cache_memory_gib > 0 else None),
         "warmup_peak_memory_mb": warmup_peak_mb,
         "peak_memory_mb": torch.cuda.max_memory_allocated() / (1024**2),
         "response_ids": response_rows,

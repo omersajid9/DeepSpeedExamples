@@ -1,0 +1,34 @@
+{
+  "engine": "vllm",
+  "model": "Qwen/Qwen3-4B",
+  "data": "data/longbench_20k.jsonl",
+  "batch_size": 1,
+  "max_prompt_length": 6144,
+  "max_new_tokens": 1,
+  "prefill_chunk_size": 512,
+  "temperature": 0.7,
+  "top_p": 0.9,
+  "top_k": -1,
+  "seed": 0,
+  "enable_prefix_caching": false,
+  "gpu_memory_utilization": 0.75,
+  "kv_cache_memory_bytes": 1181116006,
+  "warmup_peak_memory_mb": 0.0,
+  "peak_memory_mb": 0.0,
+  "response_ids": [
+    [
+      2100
+    ]
+  ],
+  "response_sha256": "4c22e4ad0a70629d55c118131c28e642a4640e0fd8789e2ad014c09b4a3be851",
+  "iterations": [
+    {
+      "wall_ms": 695.081708021462,
+      "response_ids": [
+        [
+          2100
+        ]
+      ]
+    }
+  ]
+}
