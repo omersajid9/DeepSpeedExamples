@@ -110,6 +110,8 @@ def main():
     parser.add_argument("--graph-capture", dest="graph_capture", action="store_true", default=True)
     parser.add_argument("--no-graph-capture", dest="graph_capture", action="store_false")
     parser.add_argument("--graph-capture-batch-sizes", default="")
+    parser.add_argument("--use-paged-cache", action="store_true")
+    parser.add_argument("--paged-block-size", type=int, default=0)
     parser.add_argument("--save-response-ids", action="store_true")
     args = parser.parse_args()
 
@@ -129,11 +131,13 @@ def main():
         SimpleNamespace(module=model),
         tokenizer,
         cfg=HybridEngineRolloutConfig(
-            use_graph_capture=args.graph_capture,
+            use_graph_capture=args.graph_capture and not args.use_paged_cache,
             enable_profiling=True,
             enable_chunked_prefill=args.enable_chunked_prefill,
             prefill_chunk_size=args.prefill_chunk_size,
             graph_capture_batch_sizes=ladder or None,
+            use_paged_cache=args.use_paged_cache,
+            paged_block_size=args.paged_block_size or None,
         ),
     )
     sampling = SamplingConfig(
@@ -182,8 +186,10 @@ def main():
         "max_new_tokens": args.max_new_tokens,
         "enable_chunked_prefill": args.enable_chunked_prefill,
         "prefill_chunk_size": args.prefill_chunk_size,
-        "graph_capture": args.graph_capture,
+        "graph_capture": args.graph_capture and not args.use_paged_cache,
         "graph_capture_batch_sizes": list(ladder),
+        "use_paged_cache": args.use_paged_cache,
+        "paged_block_size": args.paged_block_size or None,
         "warmup_peak_memory_mb": warmup_peak_memory_mb,
         "warmup_stats": warmup_stats,
         "peak_memory_mb": get_accelerator().max_memory_allocated() / (1024**2),
