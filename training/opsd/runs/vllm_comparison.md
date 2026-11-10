@@ -42,6 +42,22 @@ chunking disabled. Earlier vLLM runs with `max_num_batched_tokens=512` were 954.
 - The gap is now mostly the fused prefill/attention and sampler path, not the paged
   cache layout. Paged decode is the main DeepSpeed win; paged prefill is a memory win.
 
+## Chunked vs no-chunk (same KV budgets)
+
+The chunked runs use `max_num_batched_tokens=512` for vLLM and `prefill_chunk_size=512`
+for DeepSpeed. The no-chunk runs use the same engines with one prefill forward.
+
+| Engine / path | 6k no-chunk | 6k chunk 512 | Chunk penalty | 20k no-chunk | 20k chunk 512 | Chunk penalty |
+|---|---:|---:|---:|---:|---:|---:|
+| vLLM | 823.6 ms | 954.8 ms | **+15.9%** | 2794.4 ms | 3363.6 ms | **+20.4%** |
+| DeepSpeed paged prefill/decode | 1128.6 ms | 1233.8 ms | **+9.3%** | 3421.5 ms | 3871.2 ms | **+13.1%** |
+| DeepSpeed dense staging + paged decode | 1325.8 ms | 1809.2 ms | **+36.5%** | — | — | — |
+
+So **vLLM's chunked path is also slower**, and its relative penalty is larger than our
+paged-prefill chunk penalty (+15.9%/+20.4% vs +9.3%/+13.1%). The uniquely bad case is our
+**dense-staging** chunk path (+36.5% at 6k), which paged prefill replaces. In absolute terms,
+our chunked paged path is still 1.29x slower than vLLM chunked at 6k and 1.15x slower at 20k.
+
 ## Commands
 
 ```bash

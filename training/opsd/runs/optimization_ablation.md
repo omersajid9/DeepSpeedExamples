@@ -108,6 +108,19 @@ Chunking did lower peak memory (about 0.9 GiB at 5k and 1.8 GiB at 10k) and the 
 chunk is the largest exact divisor, not the largest chunk. It is a memory/interleaving
 feature for this workload, not a throughput win.
 
+### Chunk penalty: ours vs vLLM
+
+| Engine / path | 6k no-chunk | 6k chunk 512 | Chunk penalty | 20k no-chunk | 20k chunk 512 | Chunk penalty |
+|---|---:|---:|---:|---:|---:|---:|
+| vLLM 0.33 | 823.6 ms | 954.8 ms | **+15.9%** | 2794.4 ms | 3363.6 ms | **+20.4%** |
+| DeepSpeed paged prefill/decode | 1128.6 ms | 1233.8 ms | **+9.3%** | 3421.5 ms | 3871.2 ms | **+13.1%** |
+| DeepSpeed dense staging + paged decode | 1325.8 ms | 1809.2 ms | **+36.5%** | — | — | — |
+
+vLLM's chunked path is also slower, with a **larger relative penalty** than our paged
+chunk path. The uniquely bad case is our dense-staging chunk path; paged prefill replaces
+it. Absolute chunked latency still favors vLLM: 1234 vs 955 ms at 6k (1.29x) and
+3871 vs 3364 ms at 20k (1.15x).
+
 ### 6k/20k four-way comparison
 
 | Workload | Best no-chunk | Chunked four-way | Chunk penalty |
