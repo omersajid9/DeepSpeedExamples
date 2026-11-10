@@ -1,0 +1,84 @@
+{
+  "model": "/dev/shm/hf_cache/models/Qwen3.5-9B",
+  "model_type": "qwen3_5",
+  "is_hybrid": true,
+  "data": "data/longbench_20k.jsonl",
+  "batch_size": 16,
+  "continuous_batch_size": 3,
+  "max_prompt_length": 20480,
+  "max_new_tokens": 32,
+  "enable_chunked_prefill": true,
+  "prefill_chunk_size": 512,
+  "graph_capture": true,
+  "graph_capture_batch_sizes": [
+    1,
+    2,
+    3
+  ],
+  "warmup_peak_memory_mb": 17083.0517578125,
+  "warmup_stats": null,
+  "peak_memory_mb": 22418.24267578125,
+  "peak_reserved_mb": 24904.0,
+  "iterations": [
+    {
+      "wall_ms": 139679.08903677016,
+      "profile": {
+        "prompt_expansion_ms": 0.0,
+        "generation_ms": 139656.4858830534,
+        "prefill_forward_ms": 123186.28304405138,
+        "decode_forward_ms": 14846.708143129945,
+        "generation_overhead_ms": 1623.4946958720684,
+        "num_prefill_forwards": 280,
+        "num_decode_forwards": 194,
+        "scheduler_overhead_ms": 11.63517963141203,
+        "cache_management_overhead_ms": 123690.02704042941,
+        "post_processing_ms": 2.0318948663771152,
+        "total_ms": 139658.51777791977,
+        "num_generated_tokens": 446,
+        "tokens_per_second": 3.193503748258406,
+        "batch_size": 16,
+        "num_samples_per_prompt": 1,
+        "prompt_length": 20480,
+        "response_length": 32,
+        "active_batch_size": 3,
+        "continuous_batch_size": 3
+      },
+      "continuous_stats": {
+        "cache_capacity": 20512,
+        "peak_cache_length": 20511,
+        "cache_memory_bytes": 4030293000,
+        "graph_capture_ladder": [
+          1,
+          2,
+          3
+        ],
+        "graph_captures": 3,
+        "decode_bucket_steps": 194,
+        "decode_padded_rows": 83,
+        "decode_bucket_widths": {
+          "3": 138,
+          "2": 43,
+          "1": 13
+        },
+        "prefill_bucket_steps": 280,
+        "prefill_padded_rows": 0,
+        "prefill_bucket_widths": {
+          "3": 160,
+          "1": 80,
+          "2": 40
+        },
+        "trim_count": 0,
+        "trimmed_columns": 0,
+        "trim_latency_ms": 0.0,
+        "trim_bytes_moved": 0,
+        "decode_steps": 194,
+        "chunked_prefill_chunks": 640,
+        "chunked_prefill_staging_bytes": 2013265920,
+        "end_to_end_ms": 139658.53262785822,
+        "tokens_per_second": 3.193503408692085,
+        "trim_frequency": 0.0
+      },
+      "response_sha256": "816deef26cfdd76ed6941f7da8728f1e997741837d91bd323fd0e5877a5949d7"
+    }
+  ]
+}
