@@ -22,8 +22,8 @@ for path in raw.glob("*.json"):
         continue
     if data.get("iterations"):
         valid.append(path.name)
-print(f"[watchdog] valid cells {len(valid)}/19")
-sys.exit(0 if len(valid) >= 19 else 1)
+print(f"[watchdog] valid cells {len(valid)}/23")
+sys.exit(0 if len(valid) >= 23 else 1)
 PY
     if [ $? -eq 0 ]; then
         break

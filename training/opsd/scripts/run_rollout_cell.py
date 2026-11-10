@@ -39,6 +39,10 @@ ARMS = {
     "cb6_greedy_graph_buckets": (True, 0.0, True, True),
     "cb12_greedy_graph_buckets": (True, 0.0, True, True),
     "cb16_greedy_graph_buckets": (True, 0.0, True, True),
+    "eager_static_cache": (False, 0.7, False, False),
+    "eager_device_sampler": (False, 0.7, False, False),
+    "continuous_eager_3": (False, 0.0, True, False),
+    "continuous_eager_8": (False, 0.0, True, False),
     # gates
     "gate_topk1_sampling": (False, 0.7, False, False),
     "gate_t1_sampling": (False, 1.0, False, False),
@@ -51,6 +55,8 @@ C_BATCH = {
     "cb6_greedy_graph_buckets": 6,
     "cb12_greedy_graph_buckets": 12,
     "cb16_greedy_graph_buckets": 16,
+    "continuous_eager_3": 3,
+    "continuous_eager_8": 8,
 }
 
 TASKS = {

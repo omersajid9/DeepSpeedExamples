@@ -14,7 +14,7 @@ from pathlib import Path
 OPSD = Path(__file__).resolve().parent.parent
 DEEPSPEED = Path("/workspace/DeepSpeed")
 OUT = OPSD / "runs" / "rollout_matrix_2026-11-10"
-HEAD = "72124505"
+HEAD = "684a184c"
 LEGACY = "dc046b15d7a58f6c8dacba435508b52b1ebc620c"
 
 A = ["noncb_greedy", "noncb_greedy_graph", "noncb_sampling", "noncb_sampling_graph"]
@@ -23,6 +23,12 @@ C = ["cb3_greedy_graph_buckets", "cb6_greedy_graph_buckets", "cb12_greedy_graph_
 GATES = ["gate_topk1_sampling", "gate_t1_sampling"]
 NOISE = ["cb_greedy_graph_buckets", "cb_greedy_graph_buckets", "cb_greedy_graph_buckets"]
 LEGACY_CELLS = ["legacy_single_graph"]
+FEATURES = [
+    ("eager_static_cache", "1ac2c883"),
+    ("eager_device_sampler", "ea21bf01"),
+    ("continuous_eager_3", HEAD),
+    ("continuous_eager_8", HEAD),
+]
 
 
 def median(values):
@@ -97,7 +103,7 @@ def rows_from(data, task, arm, tag=""):
 
 
 def summarize(collected):
-    md = ["# Rollout optimization ablation - HEAD 72124505", ""]
+    md = [f"# Rollout optimization ablation - HEAD {HEAD}", ""]
     md.append("## ReTool A/B/C")
     md.append("")
     md.append("| Group | Arm | Rows | ms/dec-token | decode ms | gen ms | cache ms | sched ms | prefill ms | prefill tok | peak MiB | fwd | out | stop |")
@@ -112,6 +118,19 @@ def summarize(collected):
                 gen=fmt(row["gen_ms"] / 1000), c=fmt(row["cache_ms"] / 1000), s=fmt(row["sched_ms"] / 1000),
                 p=fmt(row["prefill_ms"] / 1000), pt=row["prefill_tokens"], peak=fmt(row["peak_mb"], 0),
                 f=row["forwards"], o=fmt(row["output_len"], 0), st=row["stop"]))
+    md.append("")
+    md.append("## Eager feature ablation")
+    md.append("")
+    md.append("| Arm | Rows | ms/dec-token | decode ms | peak MiB | out | stop | logprobs |")
+    md.append("|---|---:|---:|---:|---:|---:|---|---|")
+    for arm, _ in FEATURES:
+        row = collected.get(("retool", arm))
+        if row is None:
+            continue
+        md.append("| {a} | {r} | {ms} | {d} | {peak} | {o} | {st} | {lp} |".format(
+            a=arm, r=row["rows"], ms=fmt(row["ms_decode_token"]), d=fmt(row["decode_ms"] / 1000),
+            peak=fmt(row["peak_mb"], 0), o=fmt(row["output_len"], 0), st=row["stop"],
+            lp=row["logprobs_present"]))
     md.append("")
     md.append("## Path proof")
     md.append("")
@@ -194,8 +213,18 @@ def main():
                 row = rows_from(data, task, arm)
                 if row:
                     collected[(task, arm)] = row
+            for arm, commit in FEATURES:
+                out_path = OUT / "raw" / f"{task}__{arm}.json"
+                data = json.loads(out_path.read_text()) if args.resume and out_path.exists() else None
+                if data is None:
+                    git_checkout(commit)
+                    data = run_cell(task, arm, out_path)
+                    git_checkout(HEAD)
+                row = rows_from(data, task, arm)
+                if row:
+                    collected[(task, arm)] = row
     finally:
-        git_checkout("chunked-prefill-rollout")
+        git_checkout(HEAD)
     summarize(collected)
 
 
