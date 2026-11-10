@@ -13,6 +13,11 @@ the source row retires, and it is disabled for the graph-safe cache.
 Setup: Qwen3-4B, bf16, A40 48 GB, greedy, no graph capture, chunk 512, 8 new tokens.
 Commands are at the bottom.
 
+**Attribution caveat:** the 1.56x/2.75x rows below compare paged prefill against the
+dense **chunked staging + copy** path. With chunked prefill disabled, paged prefill is
+time-neutral and mostly a memory win (-8.7% peak at 6k, -18.6% at 20k); see
+`runs/optimization_ablation.md` for the clean no-chunk ablation.
+
 ## Results
 
 | Workload | Prefill | Prefill ms | Forwards | Decode ms | Total ms | Peak MiB | Response SHA |

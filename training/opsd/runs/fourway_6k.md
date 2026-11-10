@@ -36,6 +36,23 @@ graph path, with token-identical output. The no-graph paged-prefill comparison a
 reuse are in `runs/paged_prefill_prefix.md`. The feature is opt-in to keep the previous
 dense-prefill graph path available when prefill staging/capture is faster for a workload.
 
+### No-chunk best (cleaner comparison)
+
+Chunked prefill is not the fastest setting for this 6k prompt. With chunking disabled and the
+same 6k prompt, 16 new tokens, Gumbel sampler, graph capture, warmup 1:
+
+| Step | Prefill ms | Decode ms | Total ms | Tok/s | Peak MiB | SHA |
+|---|---:|---:|---:|---:|---:|---|
+| Dense eager (no graph) | 716.6 | 775.0 | 1515.6 | 10.56 | 9931.1 | `d4a324e9…` |
+| + CUDA graph | 715.6 | 590.1 | 1325.8 | 12.07 | 9947.6 | `d4a324e9…` |
+| + paged decode | 718.5 | 389.8 | 1147.8 | 13.94 | 9955.6 | `d4a324e9…` |
+| + paged prefill | 719.4 | 389.9 | **1128.6** | **14.18** | 9091.5 | `d4a324e9…` |
+| vLLM 0.33 no-chunk reference | — | — | **823.6** | **19.43** | — | `d4a324e9…` |
+
+The best no-chunk path is 1.34x faster than dense eager and **1.37x slower than vLLM**;
+the chunked paged-prefill row above is 9.3% slower than the no-chunk paged-prefill path.
+See `runs/optimization_ablation.md` for the full attribution and the 20k results.
+
 ## Accuracy verification
 
 `scripts/verify_rollout_accuracy.py` compares the two result files:
