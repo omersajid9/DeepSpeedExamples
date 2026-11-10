@@ -27,7 +27,8 @@ a prefill-latency feature.
 - Qwen3-4B 20k: prefill 109.5 s -> 162.7 s (+49%), decode 42.4 s -> 40.4 s (-5%),
   wall 152.3 s -> 204.1 s (+34%). Qwen3-4B 10k: prefill 21.4 s -> 48.2 s (+125%),
   wall 49.3 s -> 68.6 s (+39%). Qwen3-8B 10k: prefill 31.5 s -> 58.4 s (+85%),
-  wall 56.1 s -> 81.0 s (+44%).
+  wall 56.1 s -> 81.0 s (+44%). Qwen3-8B 20k at C=2 (the C=3 baseline OOMs):
+  prefill 116.6 s -> 187.3 s, decode 42.4 s -> 39.7 s, wall 159.5 s -> 227.7 s.
 - **Chunking is not free.** A 20k prompt becomes 40 x 512-token forwards instead of
   one large forward. The smaller GEMMs are less efficient, each chunk pays launch/
   mask/graph-dispatch overhead, and the prefill bucket may run a wider parked row
@@ -53,8 +54,10 @@ a prefill-latency feature.
 
 ### Caveats
 
-- Partial sweep: Qwen3-4B LongBench baseline, Qwen3-8B 20k C=2 pair, and all
-  Qwen3.5 cells are still pending.
+- Partial sweep: Qwen3-4B LongBench baseline, Qwen3-8B LongBench/ReTool, and all
+  Qwen3.5 cells were still pending when this section was written.
+- Qwen3-8B 20k baseline OOMs at C=3 (44.4 GiB); that pair is reported at C=2
+  (peak 32.2 GiB baseline, 27.9 GiB optimized) to keep both arms identical.
 - Baseline vs optimized response IDs diverge after 10-30 tokens for several rows.
   ReTool (no chunking) shows the same divergence, so it is decode-graph/batch-width
   numerical divergence rather than chunked-prefill corruption. Performance numbers
@@ -75,6 +78,8 @@ a prefill-latency feature.
 | qwen3-4b | retool | optimized | 3 | 86.87 | 0.92 | 83.80 | 94.30 | 35613.20 | 97.75 | 8675 | False | token_mismatch |
 | qwen3-8b | 10k | baseline | 3 | 56.10 | 31.54 | 24.26 | 9.13 | 5194.86 | 21.10 | 27430 | False | token_mismatch |
 | qwen3-8b | 10k | optimized | 3 | 81.02 | 58.39 | 22.25 | 6.32 | 2806.02 | 23.01 | 24868 | False | token_mismatch |
+| qwen3-8b | 20k | baseline | 2 | 159.58 | 116.67 | 42.44 | 3.21 | 2808.53 | 12.06 | 32154 | False | token_mismatch |
+| qwen3-8b | 20k | optimized | 2 | 227.83 | 187.27 | 39.74 | 2.25 | 1749.77 | 12.88 | 27896 | False | token_mismatch |
 
 ## Optimization deltas
 
@@ -84,4 +89,5 @@ a prefill-latency feature.
 | qwen3-4b | 20k | -25.4 | -32.7 | 5.0 | -25.4 | -17.1 | False |
 | qwen3-4b | retool | 83.8 | -1.0 | 86.6 | 83.8 | 2.6 | False |
 | qwen3-8b | 10k | -30.8 | -46.0 | 9.0 | -30.8 | -9.3 | False |
+| qwen3-8b | 20k | -30.0 | -37.7 | 6.8 | -30.0 | -13.2 | False |
 
