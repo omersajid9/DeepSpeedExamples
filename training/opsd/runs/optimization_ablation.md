@@ -242,6 +242,14 @@ saving).
 - Reuse is limited to live rows in the same cache. There is no graph-safe prefix path,
   no cross-generate retention, no `prefix_id` session, and no weight-version salt.
 
+## Compiled sampler
+
+The opt-in `--compiled-sampler` path wraps the top-k/top-p/Gumbel draw in
+`torch.compile(fullgraph=True, dynamic=True)`. On 6k it moved total from **1128.6 to
+1126.0 ms (0.23%)**, with identical tokens; the decode profile was unchanged (389.9 ms).
+Sampling is already a small fraction of the step, so this is a small-overhead optimization,
+not a parity lever. The compiled path falls back to eager on a compilation failure.
+
 ## Other measured effects
 
 | Item | Measurement | Result |
