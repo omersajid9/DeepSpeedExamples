@@ -141,3 +141,23 @@ Paged decode is flat-ish in context length; dense decode grows with the dense at
 The 20k paged run uses 306 64-token blocks (about 2.9 GiB of KV) and peaks at 21.2 GiB with the
 8B model.
 
+
+
+## Four-way at ReTool 512 (16 rows, Gumbel sampler)
+
+Prompt width 512 (effective ~304), 16 rows, 512 new tokens. The prompt is shorter than the
+512-token prefill chunk, so chunked prefill reports 0 chunks here; graphs and the Gumbel sampler
+are active.
+
+| Cache | Prefill ms | Decode ms/step | Total ms | Tokens/s | Peak MiB | KV blocks |
+|---|---:|---:|---:|---:|---:|---:|
+| Dense static | 1853.4 | 72.16 | 42003.6 | 195.03 | 20669.9 | static |
+| Paged | 1803.6 | 39.20 | 25209.3 | 324.96 | 20786.9 | 256 x 64-token |
+
+- Paged decode: **1.84x** faster; end-to-end **1.67x**.
+- `decode ms/step` is for all 16 rows; per generated token it is 4.51 ms dense vs 2.45 ms paged.
+- Accuracy under sampling: the 16 x 512 sampled token streams diverge between dense and paged
+  (a small logit difference changes one draw and then the continuation), so exact stream matching
+  is not a valid sampling criterion. The greedy ReTool check below is the accuracy test for the
+  graph/chunk/paged path.
+
