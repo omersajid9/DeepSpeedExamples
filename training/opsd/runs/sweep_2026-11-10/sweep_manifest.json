@@ -52,19 +52,6 @@
         "optimized": 8674.7080078125
       }
     },
-    "qwen3-8b__20k": {
-      "model": "qwen3-8b",
-      "workload": "20k",
-      "continuous_batch_size": 3,
-      "status": "missing",
-      "baseline_sha": null,
-      "optimized_sha": "84ba63ef37f82a476697d93cba1bc827a7b8794f2f447021e01a1073f20138db",
-      "token_match": null,
-      "peak_mb": {
-        "baseline": null,
-        "optimized": 34021.201171875
-      }
-    },
     "qwen3-8b__10k": {
       "model": "qwen3-8b",
       "workload": "10k",
