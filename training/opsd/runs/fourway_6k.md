@@ -57,3 +57,23 @@ python scripts/verify_rollout_accuracy.py \
 ```
 
 Artifacts: `runs/fourway_dense_6k.json`, `runs/fourway_paged_6k.json`.
+
+## Implementation notes and commits
+
+- Chunked prefill now supports sampling on both the eager (`_run_chunked_prefill`) and captured
+  (`_run_staged_prefill`) paths; the completing chunk draws its first token with the same Gumbel
+  sampler as decode, and its logprob is propagated.
+- `PagedAttentionCache` is graph-replay safe: all blocks are preallocated, paged writes/attention
+  use static per-width buffers, and the atom length fields are refreshed outside the captured
+  region. The captured graph embeds row/atom tensor addresses, so those buffers must not be
+  recreated between replays; recreating them produced the device-side `index out of bounds` on
+  the second replay.
+- Paged decode is offered behind `--use-paged-cache`; graph capture, chunked prefill, and the
+  sampler are independent flags on the benchmark.
+
+Commits:
+
+- `DeepSpeed/ablation-merged`: `4bd323aa` (chunked sampling), `c7d20e33` (graph-safe paged cache),
+  `76ae08ff` (plan/status).
+- `DeepSpeedExamples/tmp/opsd-setup-20261110`: `857f611` (four-way benchmark flags),
+  `0c03f2c` (4B four-way metrics and accuracy verifier).
