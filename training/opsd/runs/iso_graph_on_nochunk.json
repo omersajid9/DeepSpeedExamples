@@ -1,0 +1,179 @@
+{
+  "model": "/dev/shm/hf_cache/models/Qwen3.5-4B",
+  "model_type": "qwen3_5",
+  "is_hybrid": true,
+  "data": "data/retool_prompts.jsonl",
+  "batch_size": 2,
+  "continuous_batch_size": 2,
+  "max_prompt_length": 256,
+  "max_new_tokens": 8,
+  "enable_chunked_prefill": false,
+  "prefill_chunk_size": 512,
+  "graph_capture": true,
+  "graph_capture_batch_sizes": [
+    1,
+    2
+  ],
+  "warmup_peak_memory_mb": 8387.96142578125,
+  "warmup_stats": {
+    "cache_capacity": 264,
+    "peak_cache_length": 263,
+    "cache_memory_bytes": 17306832,
+    "graph_capture_ladder": [
+      1,
+      2
+    ],
+    "graph_captures": 1,
+    "decode_bucket_steps": 7,
+    "decode_padded_rows": 0,
+    "decode_bucket_widths": {
+      "2": 7
+    },
+    "prefill_bucket_steps": 0,
+    "prefill_padded_rows": 0,
+    "prefill_bucket_widths": {},
+    "trim_count": 0,
+    "trimmed_columns": 0,
+    "trim_latency_ms": 0.0,
+    "trim_bytes_moved": 0,
+    "decode_steps": 7,
+    "chunked_prefill_chunks": 0,
+    "chunked_prefill_staging_bytes": 0,
+    "end_to_end_ms": 1104.8137079924345,
+    "tokens_per_second": 14.482079543594478,
+    "trim_frequency": 0.0
+  },
+  "peak_memory_mb": 8504.69921875,
+  "peak_reserved_mb": 8568.0,
+  "iterations": [
+    {
+      "wall_ms": 285.95595294609666,
+      "profile": {
+        "prompt_expansion_ms": 0.0,
+        "generation_ms": 285.4521507397294,
+        "prefill_forward_ms": 113.98069327697158,
+        "decode_forward_ms": 162.50175796449184,
+        "generation_overhead_ms": 8.969699498265982,
+        "num_prefill_forwards": 1,
+        "num_decode_forwards": 7,
+        "scheduler_overhead_ms": 0.20345905795693398,
+        "cache_management_overhead_ms": 118.22357075288892,
+        "post_processing_ms": 0.2174670808017254,
+        "total_ms": 285.66961782053113,
+        "num_generated_tokens": 16,
+        "tokens_per_second": 56.008756276111335,
+        "batch_size": 2,
+        "num_samples_per_prompt": 1,
+        "prompt_length": 256,
+        "response_length": 8,
+        "active_batch_size": 2,
+        "continuous_batch_size": 2
+      },
+      "continuous_stats": {
+        "cache_capacity": 264,
+        "peak_cache_length": 263,
+        "cache_memory_bytes": 121115856,
+        "graph_capture_ladder": [
+          1,
+          2
+        ],
+        "graph_captures": 0,
+        "decode_bucket_steps": 7,
+        "decode_padded_rows": 0,
+        "decode_bucket_widths": {
+          "2": 7
+        },
+        "prefill_bucket_steps": 0,
+        "prefill_padded_rows": 0,
+        "prefill_bucket_widths": {},
+        "trim_count": 0,
+        "trimmed_columns": 0,
+        "trim_latency_ms": 0.0,
+        "trim_bytes_moved": 0,
+        "decode_steps": 7,
+        "chunked_prefill_chunks": 0,
+        "chunked_prefill_staging_bytes": 0,
+        "end_to_end_ms": 285.6779168359935,
+        "tokens_per_second": 56.00712920762977,
+        "trim_frequency": 0.0
+      },
+      "response_sha256": "ba6be22134a9eeea76ff4902beb638767093da46a33eb3afb00d2787737b246c"
+    },
+    {
+      "wall_ms": 284.14903907105327,
+      "profile": {
+        "prompt_expansion_ms": 0.0,
+        "generation_ms": 283.65175565704703,
+        "prefill_forward_ms": 112.69200220704079,
+        "decode_forward_ms": 162.51394897699356,
+        "generation_overhead_ms": 8.445804473012686,
+        "num_prefill_forwards": 1,
+        "num_decode_forwards": 7,
+        "scheduler_overhead_ms": 0.1899171620607376,
+        "cache_management_overhead_ms": 117.02209012582898,
+        "post_processing_ms": 0.22581731900572777,
+        "total_ms": 283.87757297605276,
+        "num_generated_tokens": 16,
+        "tokens_per_second": 56.36232490035316,
+        "batch_size": 2,
+        "num_samples_per_prompt": 1,
+        "prompt_length": 256,
+        "response_length": 8,
+        "active_batch_size": 2,
+        "continuous_batch_size": 2
+      },
+      "continuous_stats": {
+        "cache_capacity": 264,
+        "peak_cache_length": 263,
+        "cache_memory_bytes": 121115856,
+        "graph_capture_ladder": [
+          1,
+          2
+        ],
+        "graph_captures": 0,
+        "decode_bucket_steps": 7,
+        "decode_padded_rows": 0,
+        "decode_bucket_widths": {
+          "2": 7
+        },
+        "prefill_bucket_steps": 0,
+        "prefill_padded_rows": 0,
+        "prefill_bucket_widths": {},
+        "trim_count": 0,
+        "trimmed_columns": 0,
+        "trim_latency_ms": 0.0,
+        "trim_bytes_moved": 0,
+        "decode_steps": 7,
+        "chunked_prefill_chunks": 0,
+        "chunked_prefill_staging_bytes": 0,
+        "end_to_end_ms": 283.88478280976415,
+        "tokens_per_second": 56.36089346402855,
+        "trim_frequency": 0.0
+      },
+      "response_sha256": "ba6be22134a9eeea76ff4902beb638767093da46a33eb3afb00d2787737b246c"
+    }
+  ],
+  "response_ids": [
+    [
+      1599,
+      4007,
+      1831,
+      2972,
+      3138,
+      332,
+      4013,
+      11
+    ],
+    [
+      760,
+      1156,
+      6587,
+      310,
+      1423,
+      279,
+      23856,
+      6572
+    ]
+  ],
+  "response_sha256": "ba6be22134a9eeea76ff4902beb638767093da46a33eb3afb00d2787737b246c"
+}

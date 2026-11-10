@@ -3,13 +3,14 @@
 """Continuous-batching + graph-capture rollout baseline for one GPU."""
 
 import argparse
+import hashlib
 import json
 import time
 from pathlib import Path
 from types import SimpleNamespace
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
 from deepspeed.accelerator import get_accelerator
 from deepspeed.runtime.rollout.base import RolloutRequest, SamplingConfig
@@ -53,9 +54,49 @@ def _load_request(path, batch_size, tokenizer, max_prompt_length, device):
     return RolloutRequest(prompt_ids.to(device), prompt_mask.to(device))
 
 
+def _load_model(model_name, backend):
+    config = AutoConfig.from_pretrained(model_name)
+    is_hybrid = getattr(config, "model_type", "") == "qwen3_5" or backend == "qwen3_5"
+    if is_hybrid:
+        from transformers import Qwen3_5ForConditionalGeneration
+        model = Qwen3_5ForConditionalGeneration.from_pretrained(
+            model_name,
+            dtype=torch.bfloat16,
+            attn_implementation="sdpa",
+        )
+        # Text-only rollout: the vision tower is dead weight and never called
+        # when pixel_values are absent.
+        model.model.visual = None
+    else:
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            dtype=torch.bfloat16,
+            attn_implementation="sdpa",
+        )
+    # The rollout engine checks this flag to decide whether it may pass a cache
+    # class directly. Both model families accept one.
+    model._supports_cache_class = True
+    return model.eval(), is_hybrid
+
+
+def _response_ids(batch):
+    rows = []
+    for row in range(batch.input_ids.shape[0]):
+        start = int(batch.response_start_idx[row].item())
+        mask = batch.attention_mask[row, start:].bool()
+        rows.append(batch.input_ids[row, start:][mask].tolist())
+    return rows
+
+
+def _response_digest(rows):
+    payload = json.dumps(rows, separators=(",", ":")).encode()
+    return hashlib.sha256(payload).hexdigest()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default="Qwen/Qwen3-4B")
+    parser.add_argument("--model-backend", choices=("auto", "qwen3_5", "causal_lm"), default="auto")
     parser.add_argument("--data", required=True)
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--continuous-batch-size", type=int, default=2)
@@ -66,6 +107,10 @@ def main():
     parser.add_argument("--output", default="runs/continuous_graph_baseline.json")
     parser.add_argument("--enable-chunked-prefill", action="store_true")
     parser.add_argument("--prefill-chunk-size", type=int, default=512)
+    parser.add_argument("--graph-capture", dest="graph_capture", action="store_true", default=True)
+    parser.add_argument("--no-graph-capture", dest="graph_capture", action="store_false")
+    parser.add_argument("--graph-capture-batch-sizes", default="")
+    parser.add_argument("--save-response-ids", action="store_true")
     args = parser.parse_args()
 
     device = torch.device(get_accelerator().current_device_name())
@@ -73,23 +118,22 @@ def main():
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model,
-        dtype=torch.bfloat16,
-        attn_implementation="sdpa",
-    ).to(device).eval()
+    model, is_hybrid = _load_model(args.model, args.model_backend)
+    model.to(device)
 
     request = _load_request(args.data, args.batch_size, tokenizer,
                             args.max_prompt_length, device)
 
+    ladder = tuple(int(value) for value in args.graph_capture_batch_sizes.split(",") if value.strip())
     rollout = HybridEngineRollout(
         SimpleNamespace(module=model),
         tokenizer,
         cfg=HybridEngineRolloutConfig(
-            use_graph_capture=True,
+            use_graph_capture=args.graph_capture,
             enable_profiling=True,
             enable_chunked_prefill=args.enable_chunked_prefill,
             prefill_chunk_size=args.prefill_chunk_size,
+            graph_capture_batch_sizes=ladder or None,
         ),
     )
     sampling = SamplingConfig(
@@ -102,25 +146,35 @@ def main():
     )
 
     with torch.no_grad():
+        warmup_stats = None
         for _ in range(args.warmup):
             rollout.generate(request, sampling)
+            warmup_stats = dict(rollout.get_last_continuous_stats() or {})
         get_accelerator().synchronize()
+        warmup_peak_memory_mb = get_accelerator().max_memory_allocated() / (1024**2)
         get_accelerator().reset_peak_memory_stats()
 
         iterations = []
+        response_rows = None
         for _ in range(args.iterations):
             start = time.perf_counter()
-            rollout.generate(request, sampling)
+            batch = rollout.generate(request, sampling)
             get_accelerator().synchronize()
             wall_ms = (time.perf_counter() - start) * 1000.0
+            rows = _response_ids(batch)
+            if response_rows is None:
+                response_rows = rows
             iterations.append({
                 "wall_ms": wall_ms,
                 "profile": dict(rollout.get_last_profile() or {}),
                 "continuous_stats": dict(rollout.get_last_continuous_stats() or {}),
+                "response_sha256": _response_digest(rows),
             })
 
     result = {
         "model": args.model,
+        "model_type": getattr(model.config, "model_type", None),
+        "is_hybrid": is_hybrid,
         "data": args.data,
         "batch_size": args.batch_size,
         "continuous_batch_size": args.continuous_batch_size,
@@ -128,10 +182,17 @@ def main():
         "max_new_tokens": args.max_new_tokens,
         "enable_chunked_prefill": args.enable_chunked_prefill,
         "prefill_chunk_size": args.prefill_chunk_size,
-        "graph_capture": True,
+        "graph_capture": args.graph_capture,
+        "graph_capture_batch_sizes": list(ladder),
+        "warmup_peak_memory_mb": warmup_peak_memory_mb,
+        "warmup_stats": warmup_stats,
         "peak_memory_mb": get_accelerator().max_memory_allocated() / (1024**2),
+        "peak_reserved_mb": get_accelerator().max_memory_reserved() / (1024**2),
         "iterations": iterations,
     }
+    if args.save_response_ids:
+        result["response_ids"] = response_rows
+        result["response_sha256"] = _response_digest(response_rows)
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
     Path(args.output).write_text(json.dumps(result, indent=2) + "\n")
     print(f"wrote {args.output}")

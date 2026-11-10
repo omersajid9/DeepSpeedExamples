@@ -1,0 +1,60 @@
+{
+  "model": "/dev/shm/hf_cache/models/Qwen3.5-4B",
+  "model_type": "qwen3_5",
+  "is_hybrid": true,
+  "data": "data/retool_prompts.jsonl",
+  "batch_size": 2,
+  "continuous_batch_size": 1,
+  "max_prompt_length": 256,
+  "max_new_tokens": 8,
+  "enable_chunked_prefill": false,
+  "prefill_chunk_size": 512,
+  "graph_capture": false,
+  "graph_capture_batch_sizes": [],
+  "warmup_peak_memory_mb": 8117.869140625,
+  "warmup_stats": null,
+  "peak_memory_mb": 8308.4140625,
+  "peak_reserved_mb": 8324.0,
+  "iterations": [
+    {
+      "wall_ms": 1583.4208112210035,
+      "profile": {
+        "prompt_expansion_ms": 0.0,
+        "generation_ms": 1561.0809409990907,
+        "prefill_forward_ms": 736.4172539673746,
+        "decode_forward_ms": 789.7872910834849,
+        "generation_overhead_ms": 34.87639594823122,
+        "num_prefill_forwards": 2,
+        "num_decode_forwards": 14,
+        "scheduler_overhead_ms": 0.49939844757318497,
+        "cache_management_overhead_ms": 13.47080199047923,
+        "post_processing_ms": 0.34947507083415985,
+        "total_ms": 1561.4304160699248,
+        "num_generated_tokens": 16,
+        "tokens_per_second": 10.247014426855817,
+        "batch_size": 2,
+        "num_samples_per_prompt": 1,
+        "prompt_length": 256,
+        "response_length": 8,
+        "active_batch_size": 1,
+        "continuous_batch_size": 1
+      },
+      "continuous_stats": {
+        "cache_capacity": 264,
+        "peak_cache_length": 263,
+        "cache_memory_bytes": 8652872,
+        "trim_count": 0,
+        "trimmed_columns": 0,
+        "trim_latency_ms": 0.0,
+        "decode_steps": 14,
+        "end_to_end_ms": 1561.43854605034,
+        "tokens_per_second": 10.246961073474209,
+        "trim_bytes_moved": 0,
+        "trim_frequency": 0.0,
+        "chunked_prefill_chunks": 0,
+        "chunked_prefill_staging_bytes": 0
+      },
+      "response_sha256": "ba6be22134a9eeea76ff4902beb638767093da46a33eb3afb00d2787737b246c"
+    }
+  ]
+}
