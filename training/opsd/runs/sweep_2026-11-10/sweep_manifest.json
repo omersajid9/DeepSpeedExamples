@@ -1,0 +1,94 @@
+{
+  "cells": {
+    "qwen3-4b__20k": {
+      "model": "qwen3-4b",
+      "workload": "20k",
+      "continuous_batch_size": 3,
+      "status": "token_mismatch",
+      "baseline_sha": "d31262060f72290f38b1f2da66a3d9f42b1dbf6cb278a9e357b3fa538d86840b",
+      "optimized_sha": "6300eb0e8193ba565d600cd72c9a103f24f97754c7245567dbcfce7e03baf82e",
+      "token_match": false,
+      "peak_mb": {
+        "baseline": 31491.01123046875,
+        "optimized": 26111.2373046875
+      }
+    },
+    "qwen3-4b__10k": {
+      "model": "qwen3-4b",
+      "workload": "10k",
+      "continuous_batch_size": 3,
+      "status": "token_mismatch",
+      "baseline_sha": "2e6f0e6769dfcfc9a18319d3c6a6599dfc8dacf293918e0509bc5dbc8653263f",
+      "optimized_sha": "d6854248bb74f26e2f4cca8475ceb62634295d635bf19b961139d25ae3c881d1",
+      "token_match": false,
+      "peak_mb": {
+        "baseline": 18722.48681640625,
+        "optimized": 16958.2099609375
+      }
+    },
+    "qwen3-4b__longbench": {
+      "model": "qwen3-4b",
+      "workload": "longbench",
+      "continuous_batch_size": 3,
+      "status": "missing",
+      "baseline_sha": null,
+      "optimized_sha": "1a7df2524f0491560d0467395357fe4105e6549b1c4ee11fd447030856246a30",
+      "token_match": null,
+      "peak_mb": {
+        "baseline": null,
+        "optimized": 15258.1103515625
+      }
+    },
+    "qwen3-4b__retool": {
+      "model": "qwen3-4b",
+      "workload": "retool",
+      "continuous_batch_size": 3,
+      "status": "token_mismatch",
+      "baseline_sha": "79e235232555a627165b95b16fdb2626dce29f8b01295e5671f403e8347019f8",
+      "optimized_sha": "842e4ea9918ebee722c97a9597481faa55bbf07dede9c76e4604bf88c4b2327e",
+      "token_match": false,
+      "peak_mb": {
+        "baseline": 8454.30615234375,
+        "optimized": 8674.7080078125
+      }
+    },
+    "qwen3-8b__20k": {
+      "model": "qwen3-8b",
+      "workload": "20k",
+      "continuous_batch_size": 3,
+      "status": "missing",
+      "baseline_sha": null,
+      "optimized_sha": "84ba63ef37f82a476697d93cba1bc827a7b8794f2f447021e01a1073f20138db",
+      "token_match": null,
+      "peak_mb": {
+        "baseline": null,
+        "optimized": 34021.201171875
+      }
+    },
+    "qwen3-8b__10k": {
+      "model": "qwen3-8b",
+      "workload": "10k",
+      "continuous_batch_size": 3,
+      "status": "token_mismatch",
+      "baseline_sha": "519294c2675d37e0caf30564f244368e1168642183533d2e683781840786086c",
+      "optimized_sha": "f96e84e773e68495bd98d2ae3dd90192cdc1de577056c3e53d2ab476ee9df6d6",
+      "token_match": false,
+      "peak_mb": {
+        "baseline": 27430.38818359375,
+        "optimized": 24868.173828125
+      }
+    }
+  },
+  "config": {
+    "opsd_dir": "/workspace/DeepSpeedExamples/training/opsd",
+    "out_dir": "runs/sweep_2026-11-10",
+    "continuous_batch_size": 3,
+    "models": "qwen3-4b,qwen3-8b,qwen3.5-4b,qwen3.5-9b",
+    "workloads": "20k,10k,longbench,retool",
+    "arms": "baseline,optimized",
+    "warmup": null,
+    "iterations": null,
+    "resume": true,
+    "max_retries": 1
+  }
+}
