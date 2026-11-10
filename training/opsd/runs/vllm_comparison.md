@@ -42,6 +42,17 @@ chunking disabled. Earlier vLLM runs with `max_num_batched_tokens=512` were 954.
 - The gap is now mostly the fused prefill/attention and sampler path, not the paged
   cache layout. Paged decode is the main DeepSpeed win; paged prefill is a memory win.
 
+### Gap decomposition
+
+| Workload | vLLM prefill+1 | vLLM decode | DeepSpeed prefill | DeepSpeed decode | Prefill gap | Decode gap |
+|---|---:|---:|---:|---:|---:|---:|
+| 4B 6k | 551.2 ms | 18.2 ms/token | 719.4 ms | 24.4 ms/token | **168 ms (59%)** | 117 ms (41%) |
+| 4B 20k | 2647.9 ms | 20.9 ms/token | 3071.1 ms | 33.9 ms/token | **423 ms (77%)** | 125 ms (23%) |
+
+Prefill is the larger absolute gap, especially at 20k; decode is the larger per-token gap.
+The next work should target fused prefill/compile first, then decode fusion; a decode-only
+change cannot close 20k.
+
 ## Chunked vs no-chunk (same KV budgets)
 
 The chunked runs use `max_num_batched_tokens=512` for vLLM and `prefill_chunk_size=512`
@@ -86,4 +97,5 @@ export TMPDIR=/dev/shm
 
 DeepSpeed rows: `runs/ablation_6k_*_nochunk.json`,
 `runs/ablation_20k_*_nochunk.json`; full attribution in
-`runs/optimization_ablation.md`.
+`runs/optimization_ablation.md`. Split runs: `runs/vllm_6k_nochunk_new1.json`,
+`runs/vllm_20k_nochunk_new1.json`.

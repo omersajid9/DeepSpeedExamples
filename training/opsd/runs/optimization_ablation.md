@@ -265,6 +265,18 @@ not the main remaining gap: paged decode is already the strongest win, and paged
 time-neutral with a memory advantage. The remaining gap is in the model forward kernels and
 the surrounding execution path.
 
+### Gap decomposition
+
+vLLM no-chunk prefill+first-token and decode timings (same KV budgets):
+
+| Workload | vLLM prefill+1 | vLLM decode | DeepSpeed prefill | DeepSpeed decode | Prefill gap | Decode gap |
+|---|---:|---:|---:|---:|---:|---:|
+| 4B 6k | 551.2 ms | 18.2 ms/token | 719.4 ms | 24.4 ms/token | **168 ms (59%)** | 117 ms (41%) |
+| 4B 20k | 2647.9 ms | 20.9 ms/token | 3071.1 ms | 33.9 ms/token | **423 ms (77%)** | 125 ms (23%) |
+
+The prefill is the larger absolute gap, especially at 20k; decode is the larger per-token
+gap. A decode-only optimization cannot close 20k.
+
 ### 1. Fuse/compile the model forward (highest leverage)
 
 vLLM uses torch.compile, fused RMSNorm/RoPE/residual/MLP kernels, and an optimized attention
@@ -360,3 +372,4 @@ option, but it is a larger project than the remaining cache work.
 - `runs/chunk_sweep_2026-11-10/summary.md`
 - `runs/rollout_matrix_2026-11-10/summary.md`
 - `runs/vllm_comparison.md`
+- `runs/vllm_6k_nochunk_new1.json`, `runs/vllm_20k_nochunk_new1.json`
