@@ -112,8 +112,16 @@ def main():
     parser.add_argument("--graph-capture-batch-sizes", default="")
     parser.add_argument("--use-paged-cache", action="store_true")
     parser.add_argument("--paged-block-size", type=int, default=0)
+    parser.add_argument("--temperature", type=float, default=0.0)
+    parser.add_argument("--top-p", type=float, default=1.0)
+    parser.add_argument("--top-k", type=int, default=-1)
+    parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--save-response-ids", action="store_true")
+    parser.add_argument("--save-response-logprobs", action="store_true")
     args = parser.parse_args()
+    torch.manual_seed(args.seed)
+    if torch.cuda.is_available():  #ignore-cuda
+        torch.cuda.manual_seed_all(args.seed)  #ignore-cuda
 
     device = torch.device(get_accelerator().current_device_name())
     tokenizer = AutoTokenizer.from_pretrained(args.model, padding_side="left")
@@ -131,7 +139,7 @@ def main():
         SimpleNamespace(module=model),
         tokenizer,
         cfg=HybridEngineRolloutConfig(
-            use_graph_capture=args.graph_capture and not args.use_paged_cache,
+            use_graph_capture=args.graph_capture,
             enable_profiling=True,
             enable_chunked_prefill=args.enable_chunked_prefill,
             prefill_chunk_size=args.prefill_chunk_size,
@@ -142,9 +150,9 @@ def main():
     )
     sampling = SamplingConfig(
         max_new_tokens=args.max_new_tokens,
-        temperature=0.0,
-        top_p=1.0,
-        top_k=-1,
+        temperature=args.temperature,
+        top_p=args.top_p,
+        top_k=args.top_k,
         n_samples_per_prompt=1,
         continuous_batch_size=args.continuous_batch_size,
     )
@@ -168,12 +176,15 @@ def main():
             rows = _response_ids(batch)
             if response_rows is None:
                 response_rows = rows
-            iterations.append({
+            iteration = {
                 "wall_ms": wall_ms,
                 "profile": dict(rollout.get_last_profile() or {}),
                 "continuous_stats": dict(rollout.get_last_continuous_stats() or {}),
                 "response_sha256": _response_digest(rows),
-            })
+            }
+            if args.save_response_logprobs and batch.response_logprobs is not None:
+                iteration["response_logprobs"] = batch.response_logprobs.tolist()
+            iterations.append(iteration)
 
     result = {
         "model": args.model,
@@ -186,10 +197,13 @@ def main():
         "max_new_tokens": args.max_new_tokens,
         "enable_chunked_prefill": args.enable_chunked_prefill,
         "prefill_chunk_size": args.prefill_chunk_size,
-        "graph_capture": args.graph_capture and not args.use_paged_cache,
+        "graph_capture": args.graph_capture,
         "graph_capture_batch_sizes": list(ladder),
         "use_paged_cache": args.use_paged_cache,
         "paged_block_size": args.paged_block_size or None,
+        "temperature": args.temperature,
+        "top_p": args.top_p,
+        "top_k": args.top_k,
         "warmup_peak_memory_mb": warmup_peak_memory_mb,
         "warmup_stats": warmup_stats,
         "peak_memory_mb": get_accelerator().max_memory_allocated() / (1024**2),
