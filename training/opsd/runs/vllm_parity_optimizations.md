@@ -43,11 +43,42 @@ capture, `--torch-compile`. It gives 1.11x total at 6k (1129 -> 1018 ms) and 1.0
 
 **Remaining:** the compile still hits per-layer recompile limits in the paged-attention shim
 and the blocked-flash custom op. Eliminate those graph breaks and fuse the custom attention
-into the compiled graph; the current compile is a partial win, not full vLLM-grade fusion. vLLM uses torch.compile, fused
-RMSNorm/RoPE/residual/MLP kernels, and an optimized attention backend. The DeepSpeed path
-still executes the HuggingFace Qwen3 layer stack and a Python attention shim per layer. The decode roofline for 4B weights on an A40 is roughly 11.5 ms/token;
-our 6k decode is 24.4 ms/token and 20k is 34.2 ms/token, while vLLM is materially closer to the
-roofline. Work items:
+into the compiled graph; the current compile is a partial win, not full vLLM-grade fusion.
+
+### Why the fusion is partial
+
+`torch.compile` is applied **after** `install_paged_attention` and **before** the rollout's
+external CUDA-graph capture, so the measured 1017.8/3208.0 ms rows already include paged
+prefill, paged decode, the Gumbel sampler, and graph capture. The warning is not a conflict
+with those optimizations.
+
+- `_paged_qwen3_forward` uses `self.layer_idx` (a Python int) to index
+  `past_key_values._key_views[layer_idx]`. Dynamo treats that int as static and specializes
+  the graph per layer. With 36 layers and the default recompile limit of 8, it recompiles
+  layers 0-7 and then falls back for the remaining layers.
+- The blocked-flash kernel is a pybind11 extension (`flash_attn_by_atoms`) that Dynamo cannot
+  trace; it is an opaque graph break regardless of the limit.
+- The Gumbel sampler is outside the model forward and is unchanged; CUDA graph capture wraps
+  the compiled model and remains active.
+
+Tried fixes:
+
+- `@torch._dynamo.disable` on the shim: no recompile warnings, but slower
+  (1038.9 vs 1017.8 ms at 6k) because the attention path is then fully opaque.
+- Raising the recompile limit: the environment variable did not take effect; a code-level
+  limit increase was not committed because compiling 36 per-layer specializations adds
+  compile time/memory and still leaves the blocked-flash op opaque.
+
+To get full fusion, register the blocked-flash op as a PyTorch custom op
+(`torch.library.custom_op` / `allow_in_graph`) and remove per-layer Python indexing, or port
+the fused Qwen3 layer path from vLLM. The current opt-in compile is already a measured
+partial win, not a replacement for the paged cache or graph path.
+
+vLLM uses torch.compile, fused RMSNorm/RoPE/residual/MLP kernels, and an optimized attention
+backend. The DeepSpeed path still executes the HuggingFace Qwen3 layer stack and a Python
+attention shim per layer. The decode roofline for 4B weights on an A40 is roughly 11.5 ms/token;
+our compiled 6k decode is 21.8 ms/token and compiled 20k is 31.9 ms/token, while vLLM is
+materially closer to the roofline. Work items:
 
 - `torch.compile` the Qwen3 decoder with static shapes, then capture/replay the compiled graph.
 - Fuse RMSNorm + residual, rotary embedding, and the gate/up/SiLU/down MLP path.
