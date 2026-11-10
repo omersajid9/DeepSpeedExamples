@@ -1,10 +1,11 @@
 # Chunked-prefill sweep — Qwen3-4B, 5k/10k prompts
 
-Model: Qwen3-4B. batch 16, continuous 3, max_new_tokens 32. Baseline = eager, no graph, no chunk. graph_only = decode graphs, no chunk. chunk_X = decode graphs + chunked prefill at X tokens.
+Model: Qwen3-4B. batch 16, continuous 3, max_new_tokens 32. `baseline` = eager reference (no graph, no chunk); `single_graph` = dc046b15 continuous + single graph (the requested baseline); `graph_only` = new bucket graph, no chunk; `chunk_X` = new bucket graph + chunked prefill at X tokens.
 
 | Prompt | Arm | Chunk | Wall (s) | Prefill (s) | Decode (s) | Chunks | Staging (GB) | Peak (MiB) | Wall Δ vs baseline | Prefill Δ vs graph_only |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 5120 | baseline | 0 | 22.52 | 9.27 | 13.02 | 0 | 0.00 | 13243 | 0.0 | 0.1 |
+| 5120 | baseline (eager) | 0 | 22.52 | 9.27 | 13.02 | 0 | 0.00 | 13243 | 0.0 | 0.1 |
+| 5120 | single_graph | 0 | 21.74 | 9.41 | 11.68 | 0 | 0.00 | 13261 | -3.5 | 1.6 |
 | 5120 | graph_only | 0 | 20.28 | 9.26 | 10.83 | 0 | 0.00 | 13269 | -10.0 | 0.0 |
 | 5120 | chunk | 256 | 28.83 | 17.72 | 10.82 | 320 | 2.26 | 12349 | 28.0 | 91.4 |
 | 5120 | chunk | 512 | 27.33 | 16.21 | 10.82 | 160 | 2.26 | 12383 | 21.3 | 75.0 |
@@ -12,7 +13,8 @@ Model: Qwen3-4B. batch 16, continuous 3, max_new_tokens 32. Baseline = eager, no
 | 5120 | chunk | 2048 | 27.92 | 16.85 | 10.83 | 48 | 2.26 | 12603 | 24.0 | 81.9 |
 | 5120 | chunk | 4096 | 33.32 | 22.22 | 10.83 | 32 | 2.26 | 13128 | 47.9 | 139.9 |
 | 5120 | chunk | 8192 | 20.33 | 9.29 | 10.83 | 0 | 2.26 | 15429 | -9.7 | 0.3 |
-| 10240 | baseline | 0 | 43.49 | 21.30 | 21.89 | 0 | 0.00 | 18722 | 0.0 | -0.0 |
+| 10240 | baseline (eager) | 0 | 43.49 | 21.30 | 21.89 | 0 | 0.00 | 18722 | 0.0 | -0.0 |
+| 10240 | single_graph | 0 | 43.43 | 21.32 | 21.76 | 0 | 0.00 | 18748 | -0.1 | 0.1 |
 | 10240 | graph_only | 0 | 41.48 | 21.30 | 19.89 | 0 | 0.00 | 18748 | -4.6 | 0.0 |
 | 10240 | chunk | 256 | 75.04 | 54.72 | 19.86 | 640 | 4.53 | 16918 | 72.6 | 156.9 |
 | 10240 | chunk | 512 | 68.51 | 48.22 | 19.87 | 320 | 4.53 | 16958 | 57.5 | 126.3 |
@@ -24,9 +26,9 @@ Model: Qwen3-4B. batch 16, continuous 3, max_new_tokens 32. Baseline = eager, no
 
 ## Findings
 
-1. **Graph-only is the only clear win.** 5k: 20.28 s vs 22.52 s baseline (-10.0%); 10k: 41.48 s vs 43.49 s (-4.6%). Prefill is unchanged (9.26/21.30 s); decode drops 13.02->10.83 s and 21.89->19.89 s. The graph is doing the work, not chunking.
+1. **The requested continuous + single-graph baseline (dc046b15) is 21.74 s / 43.43 s, not the eager 22.52 / 43.49.** The `baseline` row is an eager reference. The new bucket graph (`graph_only`) beats the single-graph baseline by 1.46 s (6.7%) at 5k and 1.95 s (4.5%) at 10k. The single graph itself barely beats eager at 10k (-0.06 s); the bucket ladder is the real graph win. Prefill is unchanged (9.26/21.30 s); decode drops 11.68->10.83 s at 5k and 21.76->19.89 s at 10k.
 
-2. **Chunked prefill is slower than the eager baseline at every active chunk size tested.** Best chunked: 5k 1024 at 25.62 s (+13.7% vs baseline, +26.3% vs graph_only); 10k 2048 at 60.28 s (+38.6% vs baseline, +45.3% vs graph_only). The chunked path keeps the graph decode (10.82/19.87 s), so the entire loss is prefill.
+2. **Chunked prefill is slower than the correct single-graph baseline at every active chunk size tested.** Best chunked: 5k 1024 at 25.62 s (+17.8% vs single_graph, +26.3% vs graph_only); 10k 2048 at 60.28 s (+38.8% vs single_graph, +45.3% vs graph_only). The chunked path keeps the new bucket-graph decode (10.82/19.87 s), so the entire loss is prefill.
 
 3. **The best chunk is the largest exact divisor, not the largest chunk.** 5120/1024 = 5 exactly; 10240/2048 = 5 exactly. 4096 does not divide 5120 (2 chunks, the second is a full 4096-token forward for 1024 real tokens); 8192 does not divide 10240 (2 chunks, the second is a full 8192-token forward for 2048 real tokens). That padding is why 5k 4096 (33.32 s) is worse than 5k 2048 (27.92 s) and why 10k 8192 (82.09 s) is worse than 10k 4096 (67.46 s). The curve is non-monotonic in chunk size.
 

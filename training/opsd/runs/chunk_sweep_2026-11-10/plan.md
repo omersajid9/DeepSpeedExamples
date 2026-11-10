@@ -12,13 +12,14 @@ model and the prompt length, then sweeps only the chunk size.
 - Warmup 1, measured iterations 3, medians reported.
 - Chunk sizes: 256, 512, 1024, 2048, 4096, 8192.
 - Arms per prompt length:
-  - `baseline`: continuous eager, no CUDA graph, no chunked prefill.
-  - `graph_only`: continuous batching + decode/prefill graphs, no chunked prefill.
-  - `chunk_X`: continuous batching + graphs + chunked prefill at X tokens.
+  - `single_graph`: continuous batching + single graph from dc046b15, no chunked prefill (the requested baseline).
+  - `eager`: continuous eager, no CUDA graph, no chunked prefill (reference).
+  - `graph_only`: continuous batching + the new bucket graph, no chunked prefill.
+  - `chunk_X`: continuous batching + the new bucket graph + chunked prefill at X tokens.
 
-`graph_only` separates the graph effect from the chunking effect. `chunk_X` vs
-`graph_only` is the chunking cost/benefit at fixed graph state; `chunk_X` vs
-`baseline` is the full optimized bundle.
+`graph_only` vs `single_graph` is the bucket-graph effect; `chunk_X` vs
+`single_graph` is the full optimized bundle; `chunk_X` vs `graph_only` is the
+chunking cost/benefit at fixed graph state.
 
 ## Metrics
 Per run: wall, prefill forward, decode forward, chunks executed, staging bytes,
