@@ -98,4 +98,5 @@ export TMPDIR=/dev/shm
 DeepSpeed rows: `runs/ablation_6k_*_nochunk.json`,
 `runs/ablation_20k_*_nochunk.json`; full attribution in
 `runs/optimization_ablation.md`. Split runs: `runs/vllm_6k_nochunk_new1.json`,
-`runs/vllm_20k_nochunk_new1.json`.
+`runs/vllm_20k_nochunk_new1.json`. Forward-looking parity plan:
+`runs/vllm_parity_optimizations.md`.
