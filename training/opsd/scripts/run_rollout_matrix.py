@@ -40,6 +40,10 @@ def fmt(value, digits=2):
     return "" if value is None else f"{value:.{digits}f}"
 
 
+def fmt_ms(value, digits=2):
+    return fmt(None if value is None else value / 1000.0, digits)
+
+
 def git_checkout(ref):
     subprocess.run(["git", "checkout", ref], cwd=DEEPSPEED, check=True,
                    stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
@@ -114,9 +118,9 @@ def summarize(collected):
             if row is None:
                 continue
             md.append("| {g} | {a} | {r} | {ms} | {d} | {gen} | {c} | {s} | {p} | {pt} | {peak} | {f} | {o} | {st} |".format(
-                g=group, a=arm, r=row["rows"], ms=fmt(row["ms_decode_token"]), d=fmt(row["decode_ms"] / 1000),
-                gen=fmt(row["gen_ms"] / 1000), c=fmt(row["cache_ms"] / 1000), s=fmt(row["sched_ms"] / 1000),
-                p=fmt(row["prefill_ms"] / 1000), pt=row["prefill_tokens"], peak=fmt(row["peak_mb"], 0),
+                g=group, a=arm, r=row["rows"], ms=fmt(row["ms_decode_token"]), d=fmt_ms(row["decode_ms"]),
+                gen=fmt_ms(row["gen_ms"]), c=fmt_ms(row["cache_ms"]), s=fmt_ms(row["sched_ms"]),
+                p=fmt_ms(row["prefill_ms"]), pt=row["prefill_tokens"], peak=fmt(row["peak_mb"], 0),
                 f=row["forwards"], o=fmt(row["output_len"], 0), st=row["stop"]))
     md.append("")
     md.append("## Eager feature ablation")
@@ -128,7 +132,7 @@ def summarize(collected):
         if row is None:
             continue
         md.append("| {a} | {r} | {ms} | {d} | {peak} | {o} | {st} | {lp} |".format(
-            a=arm, r=row["rows"], ms=fmt(row["ms_decode_token"]), d=fmt(row["decode_ms"] / 1000),
+            a=arm, r=row["rows"], ms=fmt(row["ms_decode_token"]), d=fmt_ms(row["decode_ms"]),
             peak=fmt(row["peak_mb"], 0), o=fmt(row["output_len"], 0), st=row["stop"],
             lp=row["logprobs_present"]))
     md.append("")
@@ -145,7 +149,7 @@ def summarize(collected):
     md.append("## Noise")
     md.append("")
     reps = [collected.get(("retool", "cb_greedy_graph_buckets", f"rep{i}")) for i in (1, 2, 3)]
-    vals = [r["ms_decode_token"] for r in reps if r is not None]
+    vals = [r["ms_decode_token"] for r in reps if r is not None and r["ms_decode_token"] is not None]
     if vals:
         md.append(f"cb_greedy_graph_buckets reps ms/dec-token: {[round(v, 2) for v in vals]}; spread={(max(vals)-min(vals)):.2f}")
     md.append("")
