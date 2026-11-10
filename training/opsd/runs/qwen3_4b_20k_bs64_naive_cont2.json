@@ -1,0 +1,92 @@
+{
+  "model": "Qwen/Qwen3-4B",
+  "data": "data/longbench_20k.jsonl",
+  "batch_size": 64,
+  "continuous_batch_size": 2,
+  "max_prompt_length": 20480,
+  "max_new_tokens": 32,
+  "enable_chunked_prefill": false,
+  "prefill_chunk_size": 512,
+  "graph_capture": true,
+  "peak_memory_mb": 23612.74462890625,
+  "iterations": [
+    {
+      "wall_ms": 541727.25623101,
+      "profile": {
+        "prompt_expansion_ms": 0.0,
+        "generation_ms": 541693.7777288258,
+        "prefill_forward_ms": 393396.3210051879,
+        "decode_forward_ms": 145968.99747056887,
+        "generation_overhead_ms": 2328.4592530690134,
+        "num_prefill_forwards": 32,
+        "num_decode_forwards": 992,
+        "scheduler_overhead_ms": 26.073268614709377,
+        "cache_management_overhead_ms": 394846.61834454164,
+        "post_processing_ms": 9.907108265906572,
+        "total_ms": 541703.6848370917,
+        "num_generated_tokens": 2048,
+        "tokens_per_second": 3.78066470161801,
+        "batch_size": 64,
+        "num_samples_per_prompt": 1,
+        "prompt_length": 20480,
+        "response_length": 32,
+        "active_batch_size": 2,
+        "continuous_batch_size": 2
+      },
+      "continuous_stats": {
+        "cache_capacity": 20512,
+        "peak_cache_length": 20511,
+        "cache_memory_bytes": 6049645232,
+        "trim_count": 0,
+        "trimmed_columns": 0,
+        "trim_latency_ms": 0.0,
+        "trim_bytes_moved": 0,
+        "decode_steps": 992,
+        "chunked_prefill_chunks": 0,
+        "chunked_prefill_staging_bytes": 0,
+        "end_to_end_ms": 541703.7084372714,
+        "tokens_per_second": 3.780664536907367,
+        "trim_frequency": 0.0
+      }
+    },
+    {
+      "wall_ms": 541062.3459569179,
+      "profile": {
+        "prompt_expansion_ms": 0.0,
+        "generation_ms": 541050.9185199626,
+        "prefill_forward_ms": 393722.0852510072,
+        "decode_forward_ms": 145969.00736819953,
+        "generation_overhead_ms": 1359.8259007558227,
+        "num_prefill_forwards": 32,
+        "num_decode_forwards": 992,
+        "scheduler_overhead_ms": 25.990482419729233,
+        "cache_management_overhead_ms": 395171.0306573659,
+        "post_processing_ms": 6.5520997159183025,
+        "total_ms": 541057.4706196785,
+        "num_generated_tokens": 2048,
+        "tokens_per_second": 3.785180154068301,
+        "batch_size": 64,
+        "num_samples_per_prompt": 1,
+        "prompt_length": 20480,
+        "response_length": 32,
+        "active_batch_size": 2,
+        "continuous_batch_size": 2
+      },
+      "continuous_stats": {
+        "cache_capacity": 20512,
+        "peak_cache_length": 20511,
+        "cache_memory_bytes": 6049645232,
+        "trim_count": 0,
+        "trimmed_columns": 0,
+        "trim_latency_ms": 0.0,
+        "trim_bytes_moved": 0,
+        "decode_steps": 992,
+        "chunked_prefill_chunks": 0,
+        "chunked_prefill_staging_bytes": 0,
+        "end_to_end_ms": 541057.4835096486,
+        "tokens_per_second": 3.785180063891452,
+        "trim_frequency": 0.0
+      }
+    }
+  ]
+}
