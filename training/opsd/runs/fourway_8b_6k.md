@@ -100,3 +100,17 @@ python benchmarks/bench_continuous_graph.py --model Qwen/Qwen3-8B \
 Artifacts: `runs/8b_eager_6k_*.json`, `runs/8b_fourway_greedy_6k_*.json`,
 `runs/8b_fourway_6k_*.json`, `runs/8b_fourway_512_*.json`.
 The 4B four-way result is in `runs/fourway_6k.md`.
+
+
+## Four-way at 10k tokens (Gumbel sampler)
+
+| Cache | Prefill ms | Decode ms/token | Total ms | Tokens/s | Peak MiB | KV blocks |
+|---|---:|---:|---:|---:|---:|---:|
+| Dense static | 4034.3 | 68.91 | 6218.3 | 5.15 | 18569.5 | static |
+| Paged | 4036.8 | 42.42 | 5464.0 | 5.86 | 18575.3 | 161 x 64-token |
+
+- Paged decode: **1.63x** faster; end-to-end **1.14x**.
+- 20 prefill chunks; two graphs captured in warmup.
+- Accuracy: **32/32 tokens identical** (`fa717966...`); max logprob drift **0.1571** over
+  18 recorded positions, so `verify_rollout_accuracy.py --max-logprob-diff 0.25` reports PASS.
+
