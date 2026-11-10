@@ -1,6 +1,6 @@
 # Four-way rollout: graphs + chunked prefill + Gumbel sampler + paged attention
 
-Qwen3-8B results: `runs/fourway_8b_6k.md`.
+Qwen3-8B results: `runs/fourway_8b.md`.
 
 Qwen3-4B, A40, bf16, LongBench prompt truncated to 6144 tokens. Batch 1, continuous batch 1,
 16 new tokens, chunked prefill with chunk 512, CUDA graph capture, Gumbel sampler

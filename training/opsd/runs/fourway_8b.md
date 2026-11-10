@@ -114,3 +114,30 @@ The 4B four-way result is in `runs/fourway_6k.md`.
 - Accuracy: **32/32 tokens identical** (`fa717966...`); max logprob drift **0.1571** over
   18 recorded positions, so `verify_rollout_accuracy.py --max-logprob-diff 0.25` reports PASS.
 
+
+
+## Four-way at 20k tokens (Gumbel sampler)
+
+| Cache | Prefill ms | Decode ms/token | Total ms | Tokens/s | Peak MiB | KV blocks |
+|---|---:|---:|---:|---:|---:|---:|
+| Dense static | 12228.1 | 110.68 | 15772.5 | 2.03 | 21206.4 | static |
+| Paged | 12218.4 | 51.16 | 13950.4 | 2.29 | 21214.7 | 306 x 64-token |
+
+- Paged decode: **2.16x** faster; end-to-end **1.13x**.
+- 39 prefill chunks; two graphs captured in warmup.
+- Accuracy: **32/32 tokens identical** (`90d39e5c...`); max logprob drift **0.0238** over
+  3 recorded positions; PASS with `--max-logprob-diff 0.25`.
+
+## Scaling summary (Qwen3-8B, four-way)
+
+| Context | Dense ms/token | Paged ms/token | Decode speedup |
+|---:|---:|---:|---:|
+| 512 | 34.00 | 33.16 | 1.03x |
+| 6k | 51.91 | 38.46 | 1.35x |
+| 10k | 68.91 | 42.42 | 1.63x |
+| 20k | 110.68 | 51.16 | 2.16x |
+
+Paged decode is flat-ish in context length; dense decode grows with the dense attention span.
+The 20k paged run uses 306 64-token blocks (about 2.9 GiB of KV) and peaks at 21.2 GiB with the
+8B model.
+
