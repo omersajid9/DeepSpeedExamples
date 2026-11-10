@@ -1,0 +1,90 @@
+{
+  "model": "Qwen/Qwen3-4B",
+  "model_type": "qwen3",
+  "is_hybrid": false,
+  "data": "data/prefix_reuse_6k.jsonl",
+  "batch_size": 2,
+  "continuous_batch_size": 2,
+  "max_prompt_length": 6144,
+  "max_new_tokens": 8,
+  "enable_chunked_prefill": true,
+  "prefill_chunk_size": 512,
+  "graph_capture": false,
+  "graph_capture_batch_sizes": [],
+  "use_paged_cache": false,
+  "paged_block_size": null,
+  "enable_prefix_reuse": false,
+  "temperature": 0.0,
+  "top_p": 0.9,
+  "top_k": -1,
+  "warmup_peak_memory_mb": 7726.580078125,
+  "warmup_stats": null,
+  "peak_memory_mb": 10522.80712890625,
+  "peak_reserved_mb": 11392.0,
+  "iterations": [
+    {
+      "wall_ms": 4531.572751700878,
+      "profile": {
+        "prompt_expansion_ms": 0.0,
+        "generation_ms": 4508.578514680266,
+        "prefill_forward_ms": 3253.72336152941,
+        "decode_forward_ms": 934.8713448271155,
+        "generation_overhead_ms": 319.98380832374096,
+        "num_prefill_forwards": 24,
+        "num_decode_forwards": 14,
+        "scheduler_overhead_ms": 1.79605046287179,
+        "cache_management_overhead_ms": 73.3084655366838,
+        "post_processing_ms": 0.6439420394599438,
+        "total_ms": 4509.222456719726,
+        "num_generated_tokens": 16,
+        "tokens_per_second": 3.548283579612823,
+        "batch_size": 2,
+        "num_samples_per_prompt": 1,
+        "prompt_length": 6144,
+        "response_length": 8,
+        "active_batch_size": 2,
+        "continuous_batch_size": 2
+      },
+      "continuous_stats": {
+        "cache_capacity": 6152,
+        "peak_cache_length": 6158,
+        "cache_memory_bytes": 1814397072,
+        "trim_count": 0,
+        "trimmed_columns": 0,
+        "trim_latency_ms": 0.0,
+        "decode_steps": 14,
+        "paged_cache": false,
+        "end_to_end_ms": 4509.235296864063,
+        "tokens_per_second": 3.548273475799137,
+        "trim_bytes_moved": 0,
+        "trim_frequency": 0.0,
+        "chunked_prefill_chunks": 24,
+        "chunked_prefill_staging_bytes": 905969664
+      },
+      "response_sha256": "5530534d16cef4b50f55c35b077ff1db85500619e42f078a645a0d24bcf61991"
+    }
+  ],
+  "response_ids": [
+    [
+      2100,
+      46,
+      12820,
+      11,
+      8110,
+      553,
+      28738,
+      82724
+    ],
+    [
+      2100,
+      46,
+      12820,
+      11,
+      8110,
+      553,
+      28738,
+      82724
+    ]
+  ],
+  "response_sha256": "5530534d16cef4b50f55c35b077ff1db85500619e42f078a645a0d24bcf61991"
+}

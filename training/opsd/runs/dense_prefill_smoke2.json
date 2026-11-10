@@ -1,0 +1,79 @@
+{
+  "model": "Qwen/Qwen3-4B",
+  "model_type": "qwen3",
+  "is_hybrid": false,
+  "data": "data/longbench_20k.jsonl",
+  "batch_size": 1,
+  "continuous_batch_size": 1,
+  "max_prompt_length": 512,
+  "max_new_tokens": 8,
+  "enable_chunked_prefill": true,
+  "prefill_chunk_size": 128,
+  "graph_capture": false,
+  "graph_capture_batch_sizes": [],
+  "use_paged_cache": false,
+  "paged_block_size": null,
+  "temperature": 0.0,
+  "top_p": 0.9,
+  "top_k": -1,
+  "warmup_peak_memory_mb": 7726.400390625,
+  "warmup_stats": null,
+  "peak_memory_mb": 7894.69091796875,
+  "peak_reserved_mb": 7908.0,
+  "iterations": [
+    {
+      "wall_ms": 1351.0633506812155,
+      "profile": {
+        "prompt_expansion_ms": 0.0,
+        "generation_ms": 1331.1929400078952,
+        "prefill_forward_ms": 665.1571560651064,
+        "decode_forward_ms": 469.05695274472237,
+        "generation_overhead_ms": 196.97883119806647,
+        "num_prefill_forwards": 4,
+        "num_decode_forwards": 7,
+        "scheduler_overhead_ms": 0.6678635254502296,
+        "cache_management_overhead_ms": 10.386197362095118,
+        "post_processing_ms": 0.4932638257741928,
+        "total_ms": 1331.6862038336694,
+        "num_generated_tokens": 8,
+        "tokens_per_second": 6.00742125056904,
+        "batch_size": 1,
+        "num_samples_per_prompt": 1,
+        "prompt_length": 512,
+        "response_length": 8,
+        "active_batch_size": 1,
+        "continuous_batch_size": 1
+      },
+      "continuous_stats": {
+        "cache_capacity": 520,
+        "peak_cache_length": 519,
+        "cache_memory_bytes": 76681288,
+        "trim_count": 0,
+        "trimmed_columns": 0,
+        "trim_latency_ms": 0.0,
+        "decode_steps": 7,
+        "paged_cache": false,
+        "end_to_end_ms": 1331.696253735572,
+        "tokens_per_second": 6.007375914409171,
+        "trim_bytes_moved": 0,
+        "trim_frequency": 0.0,
+        "chunked_prefill_chunks": 4,
+        "chunked_prefill_staging_bytes": 75497472
+      },
+      "response_sha256": "6591260e609f87c9161fb44aed2787419073df1d1ec3619a53739a7161180e2c"
+    }
+  ],
+  "response_ids": [
+    [
+      323,
+      220,
+      17,
+      15,
+      16,
+      21,
+      13,
+      758
+    ]
+  ],
+  "response_sha256": "6591260e609f87c9161fb44aed2787419073df1d1ec3619a53739a7161180e2c"
+}
