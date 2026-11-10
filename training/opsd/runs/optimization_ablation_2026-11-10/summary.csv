@@ -1,0 +1,2 @@
+task,arm,wall_s,prefill_s,decode_s,tok_s,peak_mb,graph,temperature
+retool,all_greedy,86.94029222428799,0.928295997902751,83.83915924094617,94.23118681052205,8479.4580078125,True,0.0

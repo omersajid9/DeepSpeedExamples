@@ -14,7 +14,7 @@ from pathlib import Path
 OPSD = Path(__file__).resolve().parent.parent
 DEEPSPEED = Path("/workspace/DeepSpeed")
 OUT = OPSD / "runs" / "rollout_matrix_2026-11-10"
-HEAD = "684a184c"
+HEAD = "b7ed2d79"
 LEGACY = "dc046b15d7a58f6c8dacba435508b52b1ebc620c"
 
 A = ["noncb_greedy", "noncb_greedy_graph", "noncb_sampling", "noncb_sampling_graph"]

@@ -68,7 +68,7 @@
     "qwen3-8b__20k": {
       "model": "qwen3-8b",
       "workload": "20k",
-      "continuous_batch_size": 2,
+      "continuous_batch_size": 3,
       "status": "token_mismatch",
       "baseline_sha": "efaa40d6a75e298490a56f61f8fc99aeacd0f7f304bc4cfe69c34ce1cdbe7b13",
       "optimized_sha": "f67969837d3fa63579e980dedebe6cfef58610b80321cc6c873cf7c7f5f90688",
@@ -77,14 +77,40 @@
         "baseline": 32153.85546875,
         "optimized": 27896.08740234375
       }
+    },
+    "qwen3-8b__longbench": {
+      "model": "qwen3-8b",
+      "workload": "longbench",
+      "continuous_batch_size": 3,
+      "status": "missing",
+      "baseline_sha": null,
+      "optimized_sha": "5e640c2a75c5a76e504be4b23825ee71eadf1717fb0b271f896d6b663cd9c649",
+      "token_match": null,
+      "peak_mb": {
+        "baseline": null,
+        "optimized": 23168.07421875
+      }
+    },
+    "qwen3-8b__retool": {
+      "model": "qwen3-8b",
+      "workload": "retool",
+      "continuous_batch_size": 3,
+      "status": "token_mismatch",
+      "baseline_sha": "b812c6f2a64c9cca56e2010b4d8b074e04362ebb6ddac1c882d367b7a09c01ff",
+      "optimized_sha": "3b49df31409ec2f61bc5f6c1786a430c687655091d43a086eea2658574b4d118",
+      "token_match": false,
+      "peak_mb": {
+        "baseline": 16388.4169921875,
+        "optimized": 16608.83984375
+      }
     }
   },
   "config": {
     "opsd_dir": "/workspace/DeepSpeedExamples/training/opsd",
-    "out_dir": "/workspace/DeepSpeedExamples/training/opsd/runs/sweep_2026-11-10",
-    "continuous_batch_size": 2,
-    "models": "qwen3-8b",
-    "workloads": "20k",
+    "out_dir": "runs/sweep_2026-11-10",
+    "continuous_batch_size": 3,
+    "models": "qwen3-4b,qwen3-8b,qwen3.5-4b,qwen3.5-9b",
+    "workloads": "20k,10k,longbench,retool",
     "arms": "baseline,optimized",
     "warmup": null,
     "iterations": null,
