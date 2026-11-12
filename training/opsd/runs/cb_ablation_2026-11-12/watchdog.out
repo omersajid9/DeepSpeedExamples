@@ -1,0 +1,7 @@
+2026-11-12T10:15:33 watchdog started; 19/24 cells present
+2026-11-12T10:16:18 state change ['qwen3_8b_20k_B_single_graph.json'] (rc=0) wrote /u/msajid/projects/DeepSpeedExamples/training/opsd/runs/cb_ablation_2026-11-12/cb_ablation.md (20/24 cells)
+2026-11-12T10:17:03 state change ['qwen3_8b_20k_C_multi_graph.json'] (rc=0) wrote /u/msajid/projects/DeepSpeedExamples/training/opsd/runs/cb_ablation_2026-11-12/cb_ablation.md (21/24 cells)
+2026-11-12T10:17:33 state change ['qwen3_8b_20k_D_paged.json'] (rc=0) wrote /u/msajid/projects/DeepSpeedExamples/training/opsd/runs/cb_ablation_2026-11-12/cb_ablation.md (22/24 cells)
+2026-11-12T10:23:19 state change ['qwen3_8b_20k_E_fused.json'] (rc=0) wrote /u/msajid/projects/DeepSpeedExamples/training/opsd/runs/cb_ablation_2026-11-12/cb_ablation.md (23/24 cells)
+2026-11-12T10:24:04 state change ['qwen3_8b_20k_F_flashinfer_sampler.json'] (rc=0) wrote /u/msajid/projects/DeepSpeedExamples/training/opsd/runs/cb_ablation_2026-11-12/cb_ablation.md (24/24 cells)
+2026-11-12T10:24:04 all 24/24 cells present; watchdog exiting

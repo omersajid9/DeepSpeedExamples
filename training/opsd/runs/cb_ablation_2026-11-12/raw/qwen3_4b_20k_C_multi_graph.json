@@ -1,0 +1,134 @@
+{
+  "model": "Qwen/Qwen3-4B",
+  "model_type": "qwen3",
+  "is_hybrid": false,
+  "data": "data/longbench_20k.jsonl",
+  "batch_size": 2,
+  "continuous_batch_size": 2,
+  "max_prompt_length": 20480,
+  "max_new_tokens": 8,
+  "enable_chunked_prefill": false,
+  "prefill_chunk_size": 512,
+  "graph_capture": true,
+  "graph_capture_batch_sizes": [],
+  "use_paged_cache": false,
+  "paged_block_size": null,
+  "enable_paged_prefill": false,
+  "enable_prefix_reuse": false,
+  "torch_compile": false,
+  "flashinfer_prefill": false,
+  "use_flashinfer_decode": false,
+  "compiled_sampler": false,
+  "temperature": 0.0,
+  "top_p": 1.0,
+  "top_k": -1,
+  "warmup_peak_memory_mb": 19250.30419921875,
+  "warmup_stats": {
+    "cache_capacity": 20488,
+    "peak_cache_length": 20487,
+    "cache_memory_bytes": 327824,
+    "graph_capture_ladder": [
+      1,
+      2
+    ],
+    "graph_captures": 1,
+    "decode_bucket_steps": 7,
+    "decode_padded_rows": 0,
+    "decode_bucket_widths": {
+      "2": 7
+    },
+    "prefill_bucket_steps": 0,
+    "prefill_padded_rows": 0,
+    "prefill_bucket_widths": {},
+    "trim_count": 0,
+    "trimmed_columns": 0,
+    "trim_latency_ms": 0.0,
+    "trim_bytes_moved": 0,
+    "decode_steps": 7,
+    "chunked_prefill_chunks": 0,
+    "chunked_prefill_staging_bytes": 0,
+    "end_to_end_ms": 9559.880996006541,
+    "tokens_per_second": 1.673661001291093,
+    "trim_frequency": 0.0
+  },
+  "peak_memory_mb": 23551.35302734375,
+  "peak_reserved_mb": 27068.0,
+  "iterations": [
+    {
+      "wall_ms": 8746.1500299396,
+      "profile": {
+        "prompt_expansion_ms": 0.0,
+        "generation_ms": 8745.517513947561,
+        "prefill_forward_ms": 8069.049453944899,
+        "decode_forward_ms": 652.2138410946354,
+        "generation_overhead_ms": 24.254218908026814,
+        "num_prefill_forwards": 1,
+        "num_decode_forwards": 7,
+        "scheduler_overhead_ms": 0.25024975184351206,
+        "cache_management_overhead_ms": 8096.8276497442275,
+        "post_processing_ms": 0.2974880626425147,
+        "total_ms": 8745.815002010204,
+        "num_generated_tokens": 16,
+        "tokens_per_second": 1.8294464262418586,
+        "batch_size": 2,
+        "num_samples_per_prompt": 1,
+        "prompt_length": 20480,
+        "response_length": 8,
+        "active_batch_size": 2,
+        "continuous_batch_size": 2
+      },
+      "continuous_stats": {
+        "cache_capacity": 20488,
+        "peak_cache_length": 20487,
+        "cache_memory_bytes": 6042484880,
+        "graph_capture_ladder": [
+          1,
+          2
+        ],
+        "graph_captures": 0,
+        "decode_bucket_steps": 7,
+        "decode_padded_rows": 0,
+        "decode_bucket_widths": {
+          "2": 7
+        },
+        "prefill_bucket_steps": 0,
+        "prefill_padded_rows": 0,
+        "prefill_bucket_widths": {},
+        "trim_count": 0,
+        "trimmed_columns": 0,
+        "trim_latency_ms": 0.0,
+        "trim_bytes_moved": 0,
+        "decode_steps": 7,
+        "chunked_prefill_chunks": 0,
+        "chunked_prefill_staging_bytes": 0,
+        "end_to_end_ms": 8745.825932943262,
+        "tokens_per_second": 1.8294441397160834,
+        "trim_frequency": 0.0
+      },
+      "response_sha256": "86afbeb73bf7ba06b644600d83a1b16415f6d8520852895443ec72032671c8c7"
+    }
+  ],
+  "response_ids": [
+    [
+      151667,
+      198,
+      32313,
+      11,
+      1077,
+      594,
+      1490,
+      13
+    ],
+    [
+      633,
+      3309,
+      11,
+      773,
+      582,
+      6635,
+      311,
+      728
+    ]
+  ],
+  "response_sha256": "86afbeb73bf7ba06b644600d83a1b16415f6d8520852895443ec72032671c8c7"
+}
