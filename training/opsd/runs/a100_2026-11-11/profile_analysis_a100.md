@@ -3,7 +3,7 @@
 **Date:** 2026-11-11/12 · **Host:** gpua075.delta.ncsa.illinois.edu (Slurm 23821699, GPU 0)
 **Model:** Qwen3-4B (36 layers, hidden 2560, 32 q-heads, 8 KV-heads, head_dim 128, intermediate 9728, bf16; 3.63B GEMM params)
 **Workloads:** 6k = 6144-token prompt + 16 new tokens (T0.7/PP0.9); 20k = 20480 + 8 (greedy). Batch 1, continuous-batch 1, seed 0, 1 warmup + 1 measured iteration.
-**Companion report:** `optimization_ablation_a100.md` (22-cell ablation, A40 parity).
+**Companion report:** `optimization_ablation_a100.md` (24-cell ablation incl. new-best cells, A40 parity).
 
 **Engines profiled**
 
@@ -151,6 +151,8 @@ Implemented from §6: **(1) FlashInfer split-KV decode** — `BatchDecodeWithPag
 | vs vLLM | 1.50× | **1.23×** | — | 1.22× | **1.08×** | — |
 
 Gain: **−110 ms (−18%) @6k, −166 ms (−11%) @20k** — entirely from decode; prefill is unchanged by design (304–307 ms both). Correctness: all three configs (old best, new best, fresh vLLM) produce identical tokens — 6k `d4a324e9`, 20k `c4291b80` — so the kernel swap moved zero sampled tokens.
+
+Same configs under the study's 1-iteration convention: new best **497.6 / 1429.3 ms** vs old best 619.0 / 1589.5 ms and the vLLM reference 401.1 / 1307.4 ms; the full rerun on post-optimization code is in `optimization_ablation_a100.md` (new `newbest_6k`/`newbest_20k` rows).
 
 **Where the 6k decode step went (15 steps; trace `profile_raw/ds_6k_postopt.*`):**
 

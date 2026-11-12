@@ -137,11 +137,12 @@ def main():
         "d4a324e9": ["ablation_6k_dense_eager_nochunk", "ablation_6k_dense_graph_nochunk",
                      "ablation_6k_paged_decode_graph_nochunk", "ablation_6k_paged_prefill_graph_nochunk",
                      "compile_6k_graph", "compiled_sampler_6k", "flashinfer_6k_baseline", "flashinfer_6k",
-                     "chunk_paged_prefill_6k", "chunk_dense_staging_6k", "vllm_6k_nochunk"],
+                     "chunk_paged_prefill_6k", "chunk_dense_staging_6k", "vllm_6k_nochunk",
+                      "newbest_6k"],
         "c4291b80": ["ablation_20k_dense_eager_nochunk", "ablation_20k_dense_graph_nochunk",
                      "ablation_20k_paged_decode_eager_nochunk", "ablation_20k_paged_decode_graph_nochunk",
                      "ablation_20k_paged_prefill_graph_nochunk", "compile_20k_graph", "flashinfer_20k",
-                     "chunk_paged_prefill_20k_greedy", "vllm_20k_nochunk_greedy"],
+                     "chunk_paged_prefill_20k_greedy", "vllm_20k_nochunk_greedy", "newbest_20k"],
         "5530534d": ["prefix_no_reuse", "prefix_reuse"],
     }
 
@@ -159,10 +160,12 @@ def main():
         "ablation_6k_dense_eager_nochunk", "ablation_6k_dense_graph_nochunk",
         "ablation_6k_paged_decode_graph_nochunk", "ablation_6k_paged_prefill_graph_nochunk",
         "compile_6k_graph", "compiled_sampler_6k", "flashinfer_6k_baseline", "flashinfer_6k",
+        "newbest_6k",
         "chunk_paged_prefill_6k", "chunk_dense_staging_6k", "vllm_6k_nochunk",
         "ablation_20k_dense_eager_nochunk", "ablation_20k_dense_graph_nochunk",
         "ablation_20k_paged_decode_eager_nochunk", "ablation_20k_paged_decode_graph_nochunk",
         "ablation_20k_paged_prefill_graph_nochunk", "compile_20k_graph", "flashinfer_20k",
+        "newbest_20k",
         "chunk_paged_prefill_20k_greedy", "vllm_20k_nochunk_greedy",
         "prefix_no_reuse", "prefix_reuse"]}
     # A40 chunk cells lived under different names; fall back.
@@ -189,6 +192,15 @@ def main():
               "measured ~355 ms on every path, so prefill-vs-A40 ratios in the tables use the "
               "md's 716 ms basis and should be read as upper bounds on the prefill speedup.")
     md.append("")
+    md.append("Note: all A100 cells in this study were re-run on 2026-11-12 on the post-optimization "
+              "code base, so the decode elementwise/GQA cleanup (no-cat RoPE, head-major attention "
+              "output, causal-mask skip, scalar position) is included in every paged cell; the "
+              "original 2026-11-11 JSONs are backed up in `logs/ablation_11-11_original/`. The "
+              "new-best rows add `--use-flashinfer-decode` and `--compiled-sampler` on top of the "
+              "previous best (paged + paged-prefill + torch.compile). A40 has no matching cell for "
+              "the new best (no FlashInfer decode), so its columns show "
+              "\"—\" and its SHA is checked against the expected token reference instead.")
+    md.append("")
 
     # ---- 6k ----
     md.append("## Clean 4B 6k ablation (no chunked prefill)")
@@ -199,6 +211,7 @@ def main():
         ("+ paged decode", C40["ablation_6k_paged_decode_graph_nochunk"], C100["ablation_6k_paged_decode_graph_nochunk"]),
         ("+ paged prefill", C40["ablation_6k_paged_prefill_graph_nochunk"], C100["ablation_6k_paged_prefill_graph_nochunk"]),
         ("+ torch.compile", C40["compile_6k_graph"], C100["compile_6k_graph"]),
+        ("+ FlashInfer decode + compiled sampler (new best)", C40.get("newbest_6k"), C100.get("newbest_6k")),
     ]
     vllm6_100 = C100.get("vllm_6k_nochunk")
     rows6.append(("vLLM 0.33 no-chunk reference", C40.get("vllm_6k_nochunk"), vllm6_100))
@@ -227,13 +240,16 @@ def main():
             inc("CUDA graph capture", e40, e100, g40, g100),
             inc("Paged decode (on graph)", g40, g100, pd40, pd100),
             inc("Paged prefill (on paged decode)", pd40, pd100, pp40, pp100),
-            inc("torch.compile on top", pp40, pp100, tc40, tc100)]:
+            inc("torch.compile on top", pp40, pp100, tc40, tc100),
+            inc("FlashInfer decode + compiled sampler (new best)", tc40, tc100,
+                C40.get("newbest_6k"), C100.get("newbest_6k"))]:
         md.append(f"| {label} | {f(ratio(t40[1], t40[0]))} | {f(ratio(t100[1], t100[0]))} | "
                   f"{f(ratio(t40[3], t40[2]))} | {f(ratio(t100[3], t100[2]))} |")
     vllm40_6k, vllm100_6k = C40.get("vllm_6k_nochunk"), C100.get("vllm_6k_nochunk")
+    nb6_100 = C100.get("newbest_6k")
     md.append(f"| Best vs vLLM (no chunk) | "
               f"{f(ratio(tc40['wall_ms'], vllm40_6k['wall_ms'])) if tc40 and vllm40_6k else '—'} | "
-              f"{f(ratio(tc100['wall_ms'], vllm100_6k['wall_ms'])) if tc100 and vllm100_6k else '—'} | — | — |")
+              f"{f(ratio(nb6_100['wall_ms'], vllm100_6k['wall_ms'])) if nb6_100 and vllm100_6k else '—'} | — | — |")
     md.append("")
 
     # ---- 20k ----
@@ -245,6 +261,7 @@ def main():
         ("+ paged decode", C40["ablation_20k_paged_decode_graph_nochunk"], C100["ablation_20k_paged_decode_graph_nochunk"]),
         ("+ paged prefill", C40["ablation_20k_paged_prefill_graph_nochunk"], C100["ablation_20k_paged_prefill_graph_nochunk"]),
         ("+ torch.compile", C40["compile_20k_graph"], C100["compile_20k_graph"]),
+        ("+ FlashInfer decode + compiled sampler (new best)", C40.get("newbest_20k"), C100.get("newbest_20k")),
     ]
     vllm20_100 = C100.get("vllm_20k_nochunk_greedy")
     rows20.append(("vLLM 0.33 no-chunk reference", C40.get("vllm_20k_nochunk_greedy"), vllm20_100))
@@ -265,13 +282,16 @@ def main():
             inc("CUDA graph capture", e40b, e100b, g40b, g100b),
             inc("Paged decode (on graph)", g40b, g100b, pd40b, pd100b),
             inc("Paged prefill (on paged decode)", pd40b, pd100b, pp40b, pp100b),
-            inc("torch.compile on top", pp40b, pp100b, tc40b, tc100b)]:
+            inc("torch.compile on top", pp40b, pp100b, tc40b, tc100b),
+            inc("FlashInfer decode + compiled sampler (new best)", tc40b, tc100b,
+                C40.get("newbest_20k"), C100.get("newbest_20k"))]:
         md.append(f"| {label} | {f(ratio(t40[1], t40[0]))} | {f(ratio(t100[1], t100[0]))} | "
                   f"{f(ratio(t40[3], t40[2]))} | {f(ratio(t100[3], t100[2]))} |")
     vllm40_20k, vllm100_20k = C40.get("vllm_20k_nochunk_greedy"), C100.get("vllm_20k_nochunk_greedy")
+    nb20_100 = C100.get("newbest_20k")
     md.append(f"| Best vs vLLM (no chunk) | "
               f"{f(ratio(tc40b['wall_ms'], vllm40_20k['wall_ms'])) if tc40b and vllm40_20k else '—'} | "
-              f"{f(ratio(tc100b['wall_ms'], vllm100_20k['wall_ms'])) if tc100b and vllm100_20k else '—'} | — | — |")
+              f"{f(ratio(nb20_100['wall_ms'], vllm100_20k['wall_ms'])) if nb20_100 and vllm100_20k else '—'} | — | — |")
     md.append("")
 
     # ---- vLLM distance ----
@@ -284,13 +304,15 @@ def main():
     md.append("|---|---:|---:|---:|---:|")
     v6 = C100.get("vllm_6k_nochunk") or C40.get("vllm_6k_nochunk")
     v20 = C100.get("vllm_20k_nochunk_greedy") or C40.get("vllm_20k_nochunk_greedy")
-    if e100 and tc100 and v6:
-        r6 = ratio(tc100["wall_ms"], v6["wall_ms"]) if C100.get("vllm_6k_nochunk") else None
-        md.append(f"| 4B 6k, 16 new, no chunk | {f(e100['wall_ms'])} ms | {f(tc100['wall_ms'])} ms (compiled) | "
+    best6_100 = C100.get("newbest_6k") or tc100
+    if e100 and best6_100 and v6:
+        r6 = ratio(best6_100["wall_ms"], v6["wall_ms"]) if C100.get("vllm_6k_nochunk") else None
+        md.append(f"| 4B 6k, 16 new, no chunk | {f(e100['wall_ms'])} ms | {f(best6_100['wall_ms'])} ms (new best) | "
                   f"{f(v6['wall_ms'])} ms | {f(r6) if r6 else '—'}x slower |")
-    if e100b and tc100b and v20:
-        r20 = ratio(tc100b["wall_ms"], v20["wall_ms"]) if C100.get("vllm_20k_nochunk_greedy") else None
-        md.append(f"| 4B 20k, 8 new greedy | {f(e100b['wall_ms'])} ms | {f(tc100b['wall_ms'])} ms (compiled) | "
+    best20_100 = C100.get("newbest_20k") or tc100b
+    if e100b and best20_100 and v20:
+        r20 = ratio(best20_100["wall_ms"], v20["wall_ms"]) if C100.get("vllm_20k_nochunk_greedy") else None
+        md.append(f"| 4B 20k, 8 new greedy | {f(e100b['wall_ms'])} ms | {f(best20_100['wall_ms'])} ms (new best) | "
                   f"{f(v20['wall_ms'])} ms | {f(r20) if r20 else '—'}x slower |")
     md.append("")
 
@@ -359,7 +381,16 @@ def main():
     md.append("|---|---|---|---|")
     for name in list(C40):
         a40, a100 = C40[name], C100[name]
-        if not a40 or not a100:
+        if not a100:
+            continue
+        expected = next((s for s, names in A40_SHAS.items() if name in names), None)
+        if not a40:
+            # No A40 counterpart (newbest cells): check the A100 SHA against the
+            # expected token reference instead.
+            if expected is None:
+                continue
+            match = "yes" if a100["sha"] == expected else f"no ({a100['sha']} vs {expected})"
+            md.append(f"| {name} | — (no A40 cell) | `{a100['sha']}` | {match} |")
             continue
         match = "yes" if a40["sha"] == a100["sha"] else f"no ({a40['sha']} vs {a100['sha']})"
         md.append(f"| {name} | `{a40['sha']}` | `{a100['sha']}` | {match} |")
