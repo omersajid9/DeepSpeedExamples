@@ -3,7 +3,7 @@
 **Date:** 2026-11-11/12 · **Host:** gpua075.delta.ncsa.illinois.edu (Slurm 23821699, GPU 0)
 **Model:** Qwen3-4B (36 layers, hidden 2560, 32 q-heads, 8 KV-heads, head_dim 128, intermediate 9728, bf16; 3.63B GEMM params)
 **Workloads:** 6k = 6144-token prompt + 16 new tokens (T0.7/PP0.9); 20k = 20480 + 8 (greedy). Batch 1, continuous-batch 1, seed 0, 1 warmup + 1 measured iteration.
-**Companion report:** `optimization_ablation_a100.md` (24-cell ablation incl. new-best cells, A40 parity).
+**Companion report:** `optimization_ablation_a100.md` (39-cell ablation incl. new-best cells and the chunk-size sweep, A40 parity).
 
 **Engines profiled**
 

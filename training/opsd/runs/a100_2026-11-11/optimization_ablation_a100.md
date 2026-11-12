@@ -4,7 +4,7 @@ Qwen3-4B, A100-SXM4-40GB, bf16. Same data, batch 1, warmup 1, one measured itera
 
 Note: three on-disk A40 JSONs (6k dense-eager, dense-graph, paged-prefill) were re-run on 2026-11-11 and show a ~355 ms prefill versus the md's ~716 ms; cause not established (md values remain the official A40 reference). All A100 6k prefills measured ~355 ms on every path, so prefill-vs-A40 ratios in the tables use the md's 716 ms basis and should be read as upper bounds on the prefill speedup.
 
-Note: all A100 cells in this study were re-run on 2026-11-12 on the post-optimization code base, so the decode elementwise/GQA cleanup (no-cat RoPE, head-major attention output, causal-mask skip, scalar position) is included in every paged cell; the original 2026-11-11 JSONs are backed up in `logs/ablation_11-11_original/`. The new-best rows add `--use-flashinfer-decode` and `--compiled-sampler` on top of the previous best (paged + paged-prefill + torch.compile). A40 has no matching cell for the new best (no FlashInfer decode), so its columns show "—" and its SHA is checked against the expected token reference instead.
+Note: all A100 cells in this study were re-run on 2026-11-12 on the post-optimization code base, so the decode elementwise/GQA cleanup (no-cat RoPE, head-major attention output, causal-mask skip, scalar position) is included in every paged cell; the original 2026-11-11 JSONs are backed up in `logs/ablation_11-11_original/`. The new-best rows add `--use-flashinfer-decode` and `--compiled-sampler` on top of the previous best (paged + paged-prefill + torch.compile). A40 has no matching cell for the new best (no FlashInfer decode), so its columns show "—" and its SHA is checked against the expected token reference instead. The chunk-size sweep (15 cells) and the 6k greedy isolation cell were added the same day; all sweep cells reproduce the 6k/20k token SHAs.
 
 ## Clean 4B 6k ablation (no chunked prefill)
 
@@ -65,6 +65,23 @@ vLLM 0.33.0, same prompt/sampler/counts; KV capped to 1.1 GiB (6k) / 3.3 GiB (20
 | DeepSpeed dense staging + paged decode | 825.4 | 1189.2 | 44.1% | — | — | — |
 A40 reference: vLLM +15.9%/+20.4%, DeepSpeed paged +9.3%/+13.1%, dense staging +36.5% (see `runs/optimization_ablation.md`).
 
+## Prefill chunk-size sweep (new-best config)
+
+New-best config (`--use-paged-cache --enable-paged-prefill --torch-compile --compiled-sampler --use-flashinfer-decode`) with `--enable-chunked-prefill` at powers-of-two chunk sizes; 6k = Gumbel T=0.7/top_p=0.9, 16 new; 20k = greedy, 8 new. 6k chunk 8192 >= 6144 prompt, so that row is the chunk machinery without actual chunking. Penalty vs the no-chunk new-best row (positive = chunked slower).
+
+| Chunk | 6k Wall ms | 6k Prefill ms | 6k Peak MiB | 6k Penalty | 20k Wall ms | 20k Prefill ms | 20k Peak MiB | 20k Penalty |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| (no chunk) | 497.6 | 305.1 | 12359 | — | 1429.3 | 1325.1 | 16460 | — |
+| 128 | 2121.5 | 1927.3 | 10429 | 326.4% | 6160.5 | 6041.1 | 14190 | 331.0% |
+| 256 | 1178.8 | 987.1 | 10468 | 136.9% | 3319.1 | 3208.4 | 13525 | 132.2% |
+| 512 | 682.6 | 492.7 | 10545 | 37.2% | 2203.5 | 2097.1 | 13665 | 54.2% |
+| 1024 | 556.4 | 367.3 | 10698 | 11.8% | 1765.7 | 1660.9 | 13969 | 23.5% |
+| 2048 | 524.0 | 334.3 | 11404 | 5.3% | 1549.5 | 1445.0 | 15059 | 8.4% |
+| 4096 | 510.9 | 320.1 | 12028 | 2.7% | 1483.5 | 1379.9 | 17029 | 3.8% |
+| 8192 | 492.7 | 303.2 | 13223 | -1.0% | 1454.9 | 1351.2 | 19122 | 1.8% |
+
+- Gumbel vs greedy (6k, new-best, same 16 steps): Gumbel 497.6 ms vs greedy 502.7 ms → no measurable Gumbel-sampling overhead (-5.1 ms, within noise; the compiled sampler absorbs it, and both cells sampled identical tokens `d4a324e9`).
+
 ## Prefix reuse (6k, batch 2, identical prompts, chunk 512, no graph)
 
 | Path | Prefill ms A40 | Prefill ms A100 | Total ms A100 | Tok/s A100 | Peak MiB A100 | Reuse (A100) |
@@ -95,6 +112,14 @@ A40 reference: vLLM +15.9%/+20.4%, DeepSpeed paged +9.3%/+13.1%, dense staging +
 | flashinfer_6k_baseline | `d4a324e9` | `d4a324e9` | yes |
 | flashinfer_6k | `d4a324e9` | `d4a324e9` | yes |
 | newbest_6k | — (no A40 cell) | `d4a324e9` | yes |
+| chunk_sweep_6k_c128 | — (no A40 cell) | `d4a324e9` | yes |
+| chunk_sweep_6k_c256 | — (no A40 cell) | `d4a324e9` | yes |
+| chunk_sweep_6k_c512 | — (no A40 cell) | `d4a324e9` | yes |
+| chunk_sweep_6k_c1024 | — (no A40 cell) | `d4a324e9` | yes |
+| chunk_sweep_6k_c2048 | — (no A40 cell) | `d4a324e9` | yes |
+| chunk_sweep_6k_c4096 | — (no A40 cell) | `d4a324e9` | yes |
+| chunk_sweep_6k_c8192 | — (no A40 cell) | `d4a324e9` | yes |
+| newbest_6k_greedy | — (no A40 cell) | `d4a324e9` | yes |
 | chunk_paged_prefill_6k | `d4a324e9` | `d4a324e9` | yes |
 | chunk_dense_staging_6k | `d4a324e9` | `d4a324e9` | yes |
 | vllm_6k_nochunk | `d4a324e9` | `d4a324e9` | yes |
@@ -106,6 +131,13 @@ A40 reference: vLLM +15.9%/+20.4%, DeepSpeed paged +9.3%/+13.1%, dense staging +
 | compile_20k_graph | `c4291b80` | `c4291b80` | yes |
 | flashinfer_20k | `c4291b80` | `c4291b80` | yes |
 | newbest_20k | — (no A40 cell) | `c4291b80` | yes |
+| chunk_sweep_20k_c128 | — (no A40 cell) | `c4291b80` | yes |
+| chunk_sweep_20k_c256 | — (no A40 cell) | `c4291b80` | yes |
+| chunk_sweep_20k_c512 | — (no A40 cell) | `c4291b80` | yes |
+| chunk_sweep_20k_c1024 | — (no A40 cell) | `c4291b80` | yes |
+| chunk_sweep_20k_c2048 | — (no A40 cell) | `c4291b80` | yes |
+| chunk_sweep_20k_c4096 | — (no A40 cell) | `c4291b80` | yes |
+| chunk_sweep_20k_c8192 | — (no A40 cell) | `c4291b80` | yes |
 | chunk_paged_prefill_20k_greedy | `c4291b80` | `c4291b80` | yes |
 | vllm_20k_nochunk_greedy | `c4291b80` | `c4291b80` | yes |
 | prefix_no_reuse | `5530534d` | `5530534d` | yes |

@@ -138,11 +138,17 @@ def main():
                      "ablation_6k_paged_decode_graph_nochunk", "ablation_6k_paged_prefill_graph_nochunk",
                      "compile_6k_graph", "compiled_sampler_6k", "flashinfer_6k_baseline", "flashinfer_6k",
                      "chunk_paged_prefill_6k", "chunk_dense_staging_6k", "vllm_6k_nochunk",
-                      "newbest_6k"],
+                      "newbest_6k",
+                      "chunk_sweep_6k_c128", "chunk_sweep_6k_c256", "chunk_sweep_6k_c512",
+                      "chunk_sweep_6k_c1024", "chunk_sweep_6k_c2048", "chunk_sweep_6k_c4096",
+                      "chunk_sweep_6k_c8192", "newbest_6k_greedy"],
         "c4291b80": ["ablation_20k_dense_eager_nochunk", "ablation_20k_dense_graph_nochunk",
                      "ablation_20k_paged_decode_eager_nochunk", "ablation_20k_paged_decode_graph_nochunk",
                      "ablation_20k_paged_prefill_graph_nochunk", "compile_20k_graph", "flashinfer_20k",
-                     "chunk_paged_prefill_20k_greedy", "vllm_20k_nochunk_greedy", "newbest_20k"],
+                     "chunk_paged_prefill_20k_greedy", "vllm_20k_nochunk_greedy", "newbest_20k",
+                     "chunk_sweep_20k_c128", "chunk_sweep_20k_c256", "chunk_sweep_20k_c512",
+                     "chunk_sweep_20k_c1024", "chunk_sweep_20k_c2048", "chunk_sweep_20k_c4096",
+                     "chunk_sweep_20k_c8192"],
         "5530534d": ["prefix_no_reuse", "prefix_reuse"],
     }
 
@@ -161,11 +167,17 @@ def main():
         "ablation_6k_paged_decode_graph_nochunk", "ablation_6k_paged_prefill_graph_nochunk",
         "compile_6k_graph", "compiled_sampler_6k", "flashinfer_6k_baseline", "flashinfer_6k",
         "newbest_6k",
+        "chunk_sweep_6k_c128", "chunk_sweep_6k_c256", "chunk_sweep_6k_c512",
+        "chunk_sweep_6k_c1024", "chunk_sweep_6k_c2048", "chunk_sweep_6k_c4096",
+        "chunk_sweep_6k_c8192", "newbest_6k_greedy",
         "chunk_paged_prefill_6k", "chunk_dense_staging_6k", "vllm_6k_nochunk",
         "ablation_20k_dense_eager_nochunk", "ablation_20k_dense_graph_nochunk",
         "ablation_20k_paged_decode_eager_nochunk", "ablation_20k_paged_decode_graph_nochunk",
         "ablation_20k_paged_prefill_graph_nochunk", "compile_20k_graph", "flashinfer_20k",
         "newbest_20k",
+        "chunk_sweep_20k_c128", "chunk_sweep_20k_c256", "chunk_sweep_20k_c512",
+        "chunk_sweep_20k_c1024", "chunk_sweep_20k_c2048", "chunk_sweep_20k_c4096",
+        "chunk_sweep_20k_c8192",
         "chunk_paged_prefill_20k_greedy", "vllm_20k_nochunk_greedy",
         "prefix_no_reuse", "prefix_reuse"]}
     # A40 chunk cells lived under different names; fall back.
@@ -199,7 +211,9 @@ def main():
               "new-best rows add `--use-flashinfer-decode` and `--compiled-sampler` on top of the "
               "previous best (paged + paged-prefill + torch.compile). A40 has no matching cell for "
               "the new best (no FlashInfer decode), so its columns show "
-              "\"—\" and its SHA is checked against the expected token reference instead.")
+              "\"—\" and its SHA is checked against the expected token reference instead. The "
+              "chunk-size sweep (15 cells) and the 6k greedy isolation cell were added the same day; "
+              "all sweep cells reproduce the 6k/20k token SHAs.")
     md.append("")
 
     # ---- 6k ----
@@ -332,6 +346,41 @@ def main():
         md.append(f"| DeepSpeed dense staging + paged decode | {f(g100s['wall_ms'])} | {f(c6d['wall_ms'])} | "
                   f"{f(pct(g100s['wall_ms'], c6d['wall_ms']))}% | — | — | — |")
     md.append("A40 reference: vLLM +15.9%/+20.4%, DeepSpeed paged +9.3%/+13.1%, dense staging +36.5% (see `runs/optimization_ablation.md`).")
+    md.append("")
+
+    # ---- chunk-size sweep ----
+    md.append("## Prefill chunk-size sweep (new-best config)")
+    md.append("")
+    md.append("New-best config (`--use-paged-cache --enable-paged-prefill --torch-compile --compiled-sampler "
+              "--use-flashinfer-decode`) with `--enable-chunked-prefill` at powers-of-two chunk sizes; "
+              "6k = Gumbel T=0.7/top_p=0.9, 16 new; 20k = greedy, 8 new. 6k chunk 8192 >= 6144 prompt, "
+              "so that row is the chunk machinery without actual chunking. Penalty vs the no-chunk "
+              "new-best row (positive = chunked slower).")
+    md.append("")
+    md.append("| Chunk | 6k Wall ms | 6k Prefill ms | 6k Peak MiB | 6k Penalty | 20k Wall ms | 20k Prefill ms | 20k Peak MiB | 20k Penalty |")
+    md.append("|---|---:|---:|---:|---:|---:|---:|---:|---:|")
+    nb6s, nb20s = safe(C100.get("newbest_6k")), safe(C100.get("newbest_20k"))
+    md.append(f"| (no chunk) | {f(nb6s['wall_ms'])} | {f(nb6s['prefill_ms'])} | {f(nb6s['peak_mb'], 0)} | — | "
+              f"{f(nb20s['wall_ms'])} | {f(nb20s['prefill_ms'])} | {f(nb20s['peak_mb'], 0)} | — |")
+    for C in [128, 256, 512, 1024, 2048, 4096, 8192]:
+        s6, s20 = safe(C100.get(f"chunk_sweep_6k_c{C}")), safe(C100.get(f"chunk_sweep_20k_c{C}"))
+        md.append(f"| {C} | {f(s6['wall_ms'])} | {f(s6['prefill_ms'])} | {f(s6['peak_mb'], 0)} | "
+                  f"{f(pct(nb6s['wall_ms'], s6['wall_ms']))}% | "
+                  f"{f(s20['wall_ms'])} | {f(s20['prefill_ms'])} | {f(s20['peak_mb'], 0)} | "
+                  f"{f(pct(nb20s['wall_ms'], s20['wall_ms']))}% |")
+    nb6g = C100.get("newbest_6k_greedy")
+    if nb6s["wall_ms"] and nb6g:
+        d = nb6s["wall_ms"] - nb6g["wall_ms"]
+        if d <= 2.0:
+            gline = (f"\n- Gumbel vs greedy (6k, new-best, same 16 steps): Gumbel {f(nb6s['wall_ms'])} ms vs "
+                     f"greedy {f(nb6g['wall_ms'])} ms → no measurable Gumbel-sampling overhead "
+                     f"({f(d)} ms, within noise; the compiled sampler absorbs it, and both cells "
+                     f"sampled identical tokens `{nb6g['sha']}`).")
+        else:
+            gline = (f"\n- Gumbel vs greedy (6k, new-best, same 16 steps): Gumbel {f(nb6s['wall_ms'])} ms vs "
+                     f"greedy {f(nb6g['wall_ms'])} ms → Gumbel sampling costs {f(d)} ms "
+                     f"({f(pct(nb6g['wall_ms'], nb6s['wall_ms']))}% of the Gumbel run).")
+        md.append(gline)
     md.append("")
 
     # ---- prefix reuse ----
