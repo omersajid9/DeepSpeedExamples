@@ -1,0 +1,22 @@
+# A100 ablation cells: name, P, N, T, PP, data, flags (tab-separated)
+# Single source of truth for r_a100.sh re-runs and the watchdog retry list.
+ablation_6k_dense_eager_nochunk	6144	16	0.7	0.9	data/longbench_20k.jsonl	--no-graph-capture
+ablation_6k_dense_graph_nochunk	6144	16	0.7	0.9	data/longbench_20k.jsonl	
+ablation_6k_paged_decode_graph_nochunk	6144	16	0.7	0.9	data/longbench_20k.jsonl	--use-paged-cache
+ablation_6k_paged_prefill_graph_nochunk	6144	16	0.7	0.9	data/longbench_20k.jsonl	--use-paged-cache --enable-paged-prefill
+compile_6k_graph	6144	16	0.7	0.9	data/longbench_20k.jsonl	--use-paged-cache --enable-paged-prefill --torch-compile
+compiled_sampler_6k	6144	16	0.7	0.9	data/longbench_20k.jsonl	--use-paged-cache --enable-paged-prefill --compiled-sampler
+flashinfer_6k_baseline	6144	16	0.7	0.9	data/longbench_20k.jsonl	--use-paged-cache --enable-paged-prefill
+flashinfer_6k	6144	16	0.7	0.9	data/longbench_20k.jsonl	--use-paged-cache --enable-paged-prefill --flashinfer-prefill
+chunk_paged_prefill_6k	6144	16	0.7	0.9	data/longbench_20k.jsonl	--enable-chunked-prefill --prefill-chunk-size 512 --use-paged-cache --enable-paged-prefill
+chunk_dense_staging_6k	6144	16	0.7	0.9	data/longbench_20k.jsonl	--enable-chunked-prefill --prefill-chunk-size 512 --use-paged-cache
+ablation_20k_dense_eager_nochunk	20480	8	0.0	1.0	data/longbench_20k.jsonl	--no-graph-capture
+ablation_20k_dense_graph_nochunk	20480	8	0.0	1.0	data/longbench_20k.jsonl	
+ablation_20k_paged_decode_eager_nochunk	20480	8	0.0	1.0	data/longbench_20k.jsonl	--use-paged-cache --no-graph-capture
+ablation_20k_paged_decode_graph_nochunk	20480	8	0.0	1.0	data/longbench_20k.jsonl	--use-paged-cache
+ablation_20k_paged_prefill_graph_nochunk	20480	8	0.0	1.0	data/longbench_20k.jsonl	--use-paged-cache --enable-paged-prefill
+compile_20k_graph	20480	8	0.0	1.0	data/longbench_20k.jsonl	--use-paged-cache --enable-paged-prefill --torch-compile
+flashinfer_20k	20480	8	0.0	1.0	data/longbench_20k.jsonl	--use-paged-cache --enable-paged-prefill --flashinfer-prefill
+chunk_paged_prefill_20k_greedy	20480	8	0.0	1.0	data/longbench_20k.jsonl	--enable-chunked-prefill --prefill-chunk-size 512 --use-paged-cache --enable-paged-prefill
+prefix_no_reuse	6144	8	0.0	0.9	data/prefix_reuse_6k.jsonl	--batch-size 2 --continuous-batch-size 2 --enable-chunked-prefill --prefill-chunk-size 512 --no-graph-capture --use-paged-cache
+prefix_reuse	6144	8	0.0	0.9	data/prefix_reuse_6k.jsonl	--batch-size 2 --continuous-batch-size 2 --enable-chunked-prefill --prefill-chunk-size 512 --no-graph-capture --use-paged-cache --enable-prefix-reuse

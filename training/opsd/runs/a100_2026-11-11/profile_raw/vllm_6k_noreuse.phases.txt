@@ -1,0 +1,40 @@
+vllm_6k_noreuse.trace.json: 8965 kernel instances, 399.1 ms total, 15 cudaGraphLaunch events
+
+== prefill: 264.4 ms kernel time (66% of total), 408 kernels
+    66.4%     175.5 ms  GEMM cublas/cutlass
+    25.0%      66.1 ms  flash-attn
+     5.9%      15.6 ms  triton norm/act
+     2.7%       7.2 ms  other
+     0.0%       0.0 ms  paged/blocked attn
+     0.0%       0.0 ms  elementwise/copy
+     0.0%       0.0 ms  sampling
+   top kernels:
+       131.13 ms  x108    avg   1214.1 us  ampere_bf16_s16816gemm_bf16_128x256_ldg8_f2f_stages_64x3_tn
+        66.10 ms  x36     avg   1836.1 us  void flash::flash_fwd_splitkv_kernel<Flash_fwd_kernel_traits<128, 64, 128, 
+        44.35 ms  x36     avg   1231.9 us  ampere_bf16_s16816gemm_bf16_256x128_ldg8_f2f_stages_64x3_tn
+         9.41 ms  x36     avg    261.3 us  triton_poi_fused_mul_silu_slice_1
+         3.68 ms  x35     avg    105.0 us  triton_red_fused_fused_add_rms_norm_2
+         3.63 ms  x35     avg    103.8 us  triton_per_fused_add_cat_index_select_mul_rms_norm_split_split_with_sizes_s
+         2.41 ms  x36     avg     66.8 us  triton_red_fused_fused_add_rms_norm_0
+         2.22 ms  x36     avg     61.8 us  void vllm::reshape_and_cache_flash_kernel<__nv_bfloat16, __nv_bfloat16, (vl
+   inter-kernel gaps: total 7.0 ms over 407 gaps, median 1.1 us, max 3.2 ms
+
+== decode: 134.7 ms kernel time (34% of total), 8557 kernels
+    75.7%     102.0 ms  GEMM cublas/cutlass
+    14.8%      20.0 ms  flash-attn
+     5.5%       7.4 ms  other
+     3.1%       4.2 ms  triton norm/act
+     0.5%       0.6 ms  elementwise/copy
+     0.2%       0.3 ms  sampling
+     0.1%       0.1 ms  reduce
+     0.1%       0.1 ms  paged/blocked attn
+   top kernels:
+        43.15 ms  x540    avg     79.9 us  ampere_bf16_s16816gemm_bf16_128x64_ldg8_f2f_stages_32x6_tn
+        22.08 ms  x540    avg     40.9 us  ampere_bf16_s16816gemm_bf16_64x64_sliced1x2_ldg8_f2f_stages_64x6_tn
+        14.83 ms  x540    avg     27.5 us  void cutlass::Kernel2<cutlass_80_tensorop_bf16_s16816gemm_relu_bf16_64x64_6
+        14.14 ms  x540    avg     26.2 us  void flash::flash_fwd_splitkv_kernel<Flash_fwd_kernel_traits<128, 64, 128, 
+        10.51 ms  x540    avg     19.5 us  void cutlass::Kernel2<cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_tn_ali
+         8.65 ms  x16     avg    540.5 us  ampere_bf16_s16816gemm_bf16_64x64_sliced1x2_ldg8_f2f_stages_64x5_tn
+         5.82 ms  x540    avg     10.8 us  void flash::flash_fwd_splitkv_combine_kernel<Flash_fwd_kernel_traits<128, 6
+         1.93 ms  x525    avg      3.7 us  triton_per_fused_add_cat_index_select_mul_rms_norm_split_split_with_sizes_s
+   inter-kernel gaps: total 5.9 ms over 5054 gaps, median 0.1 us, max 0.0 ms

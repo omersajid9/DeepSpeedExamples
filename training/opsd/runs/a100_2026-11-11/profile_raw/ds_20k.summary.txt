@@ -1,0 +1,31 @@
+# top ops by self CUDA time (20k, best config)
+    705.00 ms  x288   void flash_fwd_kernel<Flash_fwd_kernel_traits<128, 128, 64, 4, false,  
+    524.30 ms  x36    Torch-Compiled Region: 18/0                                            
+    405.31 ms  x36    ## Call CompiledFxGraph fj55y3bazn53qospd5wkgvgoxgig3q5apusim6walf42le 
+    173.31 ms  x113   aten::mm                                                               
+    173.31 ms  x113   ampere_bf16_s16816gemm_bf16_128x256_ldg8_f2f_stages_64x3_tn            
+    139.77 ms  x36    triton_tem_fused__unsafe_view_mm_mul_silu_t_view_2                     
+    139.77 ms  x36    triton_tem_fused__unsafe_view_mm_mul_silu_t_view_2                     
+    129.41 ms  x36    triton_tem_fused__to_copy_add_mean_mm_mul_pow_rsqrt_t_view_1           
+    129.41 ms  x36    triton_tem_fused__to_copy_add_mean_mm_mul_pow_rsqrt_t_view_1           
+    128.32 ms  x36    triton_tem_fused__unsafe_view_add_mm_mul_silu_t_view_3                 
+    128.32 ms  x36    triton_tem_fused__unsafe_view_add_mm_mul_silu_t_view_3                 
+     59.99 ms  x1     ## Call CompiledFxGraph fnqa6pg43mgpico4deuhpnerclcnfjq2w7irklni6dw5kk 
+     56.34 ms  x254   aten::mul                                                              
+     43.93 ms  x1680  void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_imp 
+     25.49 ms  x572   aten::copy_                                                            
+     22.96 ms  x560   void at::native::(anonymous namespace)::CatArrayBatchedCopy<at::native 
+     21.05 ms  x68    aten::cat                                                              
+     17.96 ms  x252   triton_red_fused__to_copy_add_mean_mm_mul_pow_rsqrt_t_view_1           
+     17.82 ms  x560   void at::native::elementwise_kernel<128, 2, at::native::gpu_kernel_imp 
+     17.09 ms  x560   void at::native::vectorized_elementwise_kernel<4, at::native::(anonymo 
+     16.37 ms  x222   aten::add                                                              
+     16.28 ms  x56    aten::pow                                                              
+     15.74 ms  x56    void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_imp 
+     13.47 ms  x560   void at::native::vectorized_elementwise_kernel<4, at::native::converti 
+     13.36 ms  x560   void at::native::vectorized_elementwise_kernel<4, at::native::converti 
+     13.23 ms  x332   triton_red_fused__to_copy_add_mean_mul_pow_rsqrt_0                     
+     12.61 ms  x73    triton_red_fused__to_copy_add_mean_mul_pow_rsqrt_0                     
+     12.15 ms  x8     triton_tem_fused_mm_t_transpose_view_0                                 
+     12.15 ms  x8     triton_tem_fused_mm_t_transpose_view_0                                 
+     12.15 ms  x8     ## Call CompiledFxGraph f7f4ezlr6oxkqpobyk2h6i6mqwkktppxbonxdlkatwzmef 

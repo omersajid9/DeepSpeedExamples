@@ -116,6 +116,7 @@ def main():
     parser.add_argument("--enable-prefix-reuse", action="store_true")
     parser.add_argument("--torch-compile", action="store_true")
     parser.add_argument("--flashinfer-prefill", action="store_true")
+    parser.add_argument("--use-flashinfer-decode", action="store_true")
     parser.add_argument("--compiled-sampler", action="store_true")
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument("--top-p", type=float, default=1.0)
@@ -155,6 +156,7 @@ def main():
             enable_prefix_reuse=args.enable_prefix_reuse,
             enable_torch_compile=args.torch_compile,
             use_flashinfer_prefill=args.flashinfer_prefill,
+            use_flashinfer_decode=args.use_flashinfer_decode,
             enable_compiled_sampler=args.compiled_sampler,
         ),
     )
@@ -215,6 +217,7 @@ def main():
         "enable_prefix_reuse": args.enable_prefix_reuse,
         "torch_compile": args.torch_compile,
         "flashinfer_prefill": args.flashinfer_prefill,
+        "use_flashinfer_decode": args.use_flashinfer_decode,
         "compiled_sampler": args.compiled_sampler,
         "temperature": args.temperature,
         "top_p": args.top_p,

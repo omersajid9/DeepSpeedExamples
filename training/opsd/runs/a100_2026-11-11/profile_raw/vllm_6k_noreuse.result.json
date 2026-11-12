@@ -1,0 +1,5 @@
+{
+  "workload": "6k",
+  "response_sha256": "d4a324e903ed2fe8e2d5b676b43ec94a22efbbdd5663c30a310d93d0144cf02c",
+  "note": "torch-profile"
+}

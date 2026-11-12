@@ -1,0 +1,26 @@
+{
+  "workload": "6k",
+  "response_sha256": "d4a324e903ed2fe8e2d5b676b43ec94a22efbbdd5663c30a310d93d0144cf02c",
+  "engine_profile": {
+    "prompt_expansion_ms": 0.0,
+    "generation_ms": 658.1627649720758,
+    "prefill_forward_ms": 310.9315459150821,
+    "decode_forward_ms": 312.6537959324196,
+    "generation_overhead_ms": 34.577423124574125,
+    "num_prefill_forwards": 1,
+    "num_decode_forwards": 15,
+    "scheduler_overhead_ms": 0.47169614117592573,
+    "cache_management_overhead_ms": 315.5621176119894,
+    "post_processing_ms": 0.46435208059847355,
+    "total_ms": 658.6271170526743,
+    "num_generated_tokens": 16,
+    "tokens_per_second": 24.292956645331056,
+    "batch_size": 1,
+    "num_samples_per_prompt": 1,
+    "prompt_length": 6144,
+    "response_length": 16,
+    "active_batch_size": 1,
+    "continuous_batch_size": 1
+  },
+  "note": "torch-profile"
+}

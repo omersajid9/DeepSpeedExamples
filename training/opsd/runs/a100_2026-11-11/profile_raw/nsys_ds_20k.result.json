@@ -1,0 +1,26 @@
+{
+  "workload": "20k",
+  "response_sha256": "c4291b8013dd0839db4fb6ac81bce4258b9a032ff8014cb72e8c9068cac2b258",
+  "engine_profile": {
+    "prompt_expansion_ms": 0.0,
+    "generation_ms": 1618.7961969990283,
+    "prefill_forward_ms": 1348.293682007352,
+    "decode_forward_ms": 256.129744957434,
+    "generation_overhead_ms": 14.372770034242421,
+    "num_prefill_forwards": 1,
+    "num_decode_forwards": 7,
+    "scheduler_overhead_ms": 0.24903699522837996,
+    "cache_management_overhead_ms": 1349.016877968097,
+    "post_processing_ms": 0.26805297238752246,
+    "total_ms": 1619.0642499714158,
+    "num_generated_tokens": 8,
+    "tokens_per_second": 4.94112571514147,
+    "batch_size": 1,
+    "num_samples_per_prompt": 1,
+    "prompt_length": 19495,
+    "response_length": 8,
+    "active_batch_size": 1,
+    "continuous_batch_size": 1
+  },
+  "note": "wall 1619.4 ms"
+}

@@ -1,0 +1,31 @@
+# top ops by self CUDA time (20k, vLLM)
+     20.02 ms  x252   ampere_bf16_s16816gemm_bf16_128x64_ldg8_f2f_stages_32x6_tn             
+     17.49 ms  x36    _vllm_fa2_C::varlen_fwd                                                
+     17.49 ms  x36    void flash::flash_fwd_splitkv_kernel<Flash_fwd_kernel_traits<128, 64,  
+     16.18 ms  x252   void flash::flash_fwd_splitkv_kernel<Flash_fwd_kernel_traits<128, 64,  
+     10.60 ms  x152   aten::mm                                                               
+     10.27 ms  x252   ampere_bf16_s16816gemm_bf16_64x64_sliced1x2_ldg8_f2f_stages_64x6_tn    
+      8.14 ms  x80    ampere_bf16_s16816gemm_bf16_64x64_sliced1x2_ldg8_f2f_stages_64x5_tn    
+      7.60 ms  x37    ## Call CompiledFxGraph None ##                                        
+      6.89 ms  x252   void cutlass::Kernel2<cutlass_80_tensorop_bf16_s16816gemm_relu_bf16_64 
+      4.93 ms  x252   void cutlass::Kernel2<cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_t 
+      2.76 ms  x252   void flash::flash_fwd_splitkv_combine_kernel<Flash_fwd_kernel_traits<1 
+      2.24 ms  x72    void cutlass::Kernel2<cutlass_80_tensorop_bf16_s16816gemm_relu_bf16_12 
+      1.03 ms  x280   triton_per_fused_add_cat_index_select_mul_rms_norm_split_split_with_si 
+      1.00 ms  x280   triton_per_fused_add_cat_index_select_mul_rms_norm_split_split_with_si 
+      0.89 ms  x288   void vllm::reshape_and_cache_flash_kernel<__nv_bfloat16, __nv_bfloat16 
+      0.87 ms  x324   void cublasLt::splitKreduce_kernel<32, 16, int, __nv_bfloat16, __nv_bf 
+      0.82 ms  x288   triton_red_fused_fused_add_rms_norm_2                                  
+      0.78 ms  x288   triton_red_fused_fused_add_rms_norm_0                                  
+      0.65 ms  x288   triton_poi_fused_mul_silu_slice_1                                      
+      0.61 ms  x252   void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16,  
+      0.49 ms  x51    cudaEventRecordWithFlags                                               
+      0.46 ms  x252   Memset (Unknown)                                                       
+      0.40 ms  x259   memcpy32_post                                                          
+      0.14 ms  x35    triton_per_fused_add_cat_index_select_mul_rms_norm_split_split_with_si 
+      0.14 ms  x24    aten::index                                                            
+      0.14 ms  x35    triton_per_fused_add_cat_index_select_mul_rms_norm_split_split_with_si 
+      0.12 ms  x36    _C_cache_ops::reshape_and_cache_flash                                  
+      0.12 ms  x36    triton_red_fused_fused_add_rms_norm_2                                  
+      0.11 ms  x36    triton_poi_fused_mul_silu_slice_1                                      
+      0.11 ms  x36    triton_red_fused_fused_add_rms_norm_0                                  

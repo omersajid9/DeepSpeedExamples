@@ -1,0 +1,110 @@
+{
+  "engine": "vllm",
+  "model": "Qwen/Qwen3-4B",
+  "data": "data/longbench_20k.jsonl",
+  "batch_size": 1,
+  "max_prompt_length": 6144,
+  "max_new_tokens": 16,
+  "prefill_chunk_size": 8192,
+  "temperature": 0.7,
+  "top_p": 0.9,
+  "top_k": -1,
+  "seed": 0,
+  "enable_prefix_caching": false,
+  "gpu_memory_utilization": 0.75,
+  "kv_cache_memory_bytes": 1181116006,
+  "warmup_peak_memory_mb": 9330.5341796875,
+  "peak_memory_mb": 9331.5029296875,
+  "response_ids": [
+    [
+      2100,
+      46,
+      12820,
+      11,
+      8110,
+      553,
+      28738,
+      82724,
+      748,
+      1736,
+      16839,
+      6165,
+      13,
+      2524,
+      568,
+      320
+    ]
+  ],
+  "response_sha256": "d4a324e903ed2fe8e2d5b676b43ec94a22efbbdd5663c30a310d93d0144cf02c",
+  "iterations": [
+    {
+      "wall_ms": 397.5258480058983,
+      "response_ids": [
+        [
+          2100,
+          46,
+          12820,
+          11,
+          8110,
+          553,
+          28738,
+          82724,
+          748,
+          1736,
+          16839,
+          6165,
+          13,
+          2524,
+          568,
+          320
+        ]
+      ]
+    },
+    {
+      "wall_ms": 397.3609289387241,
+      "response_ids": [
+        [
+          2100,
+          46,
+          12820,
+          11,
+          8110,
+          553,
+          28738,
+          82724,
+          748,
+          1736,
+          16839,
+          6165,
+          13,
+          2524,
+          568,
+          320
+        ]
+      ]
+    },
+    {
+      "wall_ms": 396.8673120252788,
+      "response_ids": [
+        [
+          2100,
+          46,
+          12820,
+          11,
+          8110,
+          553,
+          28738,
+          82724,
+          748,
+          1736,
+          16839,
+          6165,
+          13,
+          2524,
+          568,
+          320
+        ]
+      ]
+    }
+  ]
+}

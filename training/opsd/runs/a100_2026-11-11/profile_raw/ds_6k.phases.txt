@@ -1,0 +1,38 @@
+ds_6k.trace.json: 29412 kernel instances, 586.3 ms total, 15 cudaGraphLaunch events
+
+== prefill: 302.6 ms kernel time (52% of total), 1655 kernels
+    49.5%     149.9 ms  triton GEMM/MLP
+    18.4%      55.7 ms  flash-attn
+    16.9%      51.0 ms  elementwise/copy
+    12.6%      38.0 ms  GEMM cublas/cutlass
+     1.5%       4.4 ms  triton norm/act
+     1.1%       3.5 ms  reduce
+     0.0%       0.0 ms  other
+   top kernels:
+        55.74 ms  x36     avg   1548.3 us  void flash_fwd_kernel<Flash_fwd_kernel_traits<128, 128, 64, 4, false, false
+        42.81 ms  x36     avg   1189.2 us  triton_tem_fused__unsafe_view_mm_mul_silu_t_view_2
+        40.02 ms  x36     avg   1111.8 us  triton_tem_fused__to_copy_add_mean_mm_mul_pow_rsqrt_t_view_1
+        39.45 ms  x36     avg   1095.8 us  triton_tem_fused__unsafe_view_add_mm_mul_silu_t_view_3
+        38.04 ms  x112    avg    339.7 us  ampere_bf16_s16816gemm_bf16_128x256_ldg8_f2f_stages_64x3_tn
+        21.63 ms  x10     avg   2162.5 us  triton_tem_fused_mm_t_view_0
+        12.57 ms  x168    avg     74.8 us  void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_impl_noc
+         6.75 ms  x56     avg    120.5 us  void at::native::(anonymous namespace)::CatArrayBatchedCopy<at::native::(an
+   inter-kernel gaps: total 18.6 ms over 1654 gaps, median 1.1 us, max 5.6 ms
+
+== decode: 283.7 ms kernel time (48% of total), 27757 kernels
+    45.2%     128.2 ms  flash-attn
+    24.4%      69.3 ms  triton norm/act
+    16.9%      48.0 ms  elementwise/copy
+    11.3%      31.9 ms  GEMM cublas/cutlass
+     1.2%       3.4 ms  reduce
+     1.0%       2.9 ms  other
+   top kernels:
+       128.19 ms  x540    avg    237.4 us  void flash_fwd_kernel<Flash_fwd_kernel_traits<128, 128, 64, 4, false, false
+        38.24 ms  x540    avg     70.8 us  triton_red_fused__to_copy_add_mean_mm_mul_pow_rsqrt_t_view_1
+        20.63 ms  x540    avg     38.2 us  triton_red_fused__unsafe_view_add_mm_mul_silu_t_view_2
+        11.21 ms  x540    avg     20.8 us  ampere_bf16_s16816gemm_bf16_64x64_sliced1x2_ldg8_f2f_stages_64x6_tn
+        10.26 ms  x540    avg     19.0 us  void cutlass::Kernel2<cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_tn_ali
+         9.33 ms  x3240   avg      2.9 us  void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_impl_noc
+         9.15 ms  x1080   avg      8.5 us  std::enable_if<!(false), void>::type internal::gemvx::kernel<int, int, __nv
+         8.01 ms  x15     avg    534.0 us  triton_red_fused_mm_t_view_0
+   inter-kernel gaps: total 54.2 ms over 26507 gaps, median 0.1 us, max 2.1 ms

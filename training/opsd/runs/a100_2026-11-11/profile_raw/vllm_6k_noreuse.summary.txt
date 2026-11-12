@@ -1,0 +1,31 @@
+# top ops by self CUDA time (6k, vLLM)
+    196.41 ms  x37    ## Call CompiledFxGraph None ##                                        
+    184.12 ms  x160   aten::mm                                                               
+    131.13 ms  x108   ampere_bf16_s16816gemm_bf16_128x256_ldg8_f2f_stages_64x3_tn            
+     66.10 ms  x36    _vllm_fa2_C::varlen_fwd                                                
+     66.10 ms  x36    void flash::flash_fwd_splitkv_kernel<Flash_fwd_kernel_traits<128, 64,  
+     44.35 ms  x36    ampere_bf16_s16816gemm_bf16_256x128_ldg8_f2f_stages_64x3_tn            
+     43.15 ms  x540   ampere_bf16_s16816gemm_bf16_128x64_ldg8_f2f_stages_32x6_tn             
+     22.08 ms  x540   ampere_bf16_s16816gemm_bf16_64x64_sliced1x2_ldg8_f2f_stages_64x6_tn    
+     14.83 ms  x540   void cutlass::Kernel2<cutlass_80_tensorop_bf16_s16816gemm_relu_bf16_64 
+     14.14 ms  x540   void flash::flash_fwd_splitkv_kernel<Flash_fwd_kernel_traits<128, 64,  
+     10.51 ms  x540   void cutlass::Kernel2<cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_t 
+     10.48 ms  x576   triton_poi_fused_mul_silu_slice_1                                      
+      9.41 ms  x36    triton_poi_fused_mul_silu_slice_1                                      
+      8.65 ms  x16    ampere_bf16_s16816gemm_bf16_64x64_sliced1x2_ldg8_f2f_stages_64x5_tn    
+      5.82 ms  x540   void flash::flash_fwd_splitkv_combine_kernel<Flash_fwd_kernel_traits<1 
+      5.56 ms  x560   triton_per_fused_add_cat_index_select_mul_rms_norm_split_split_with_si 
+      5.28 ms  x576   triton_red_fused_fused_add_rms_norm_2                                  
+      3.87 ms  x576   triton_red_fused_fused_add_rms_norm_0                                  
+      3.80 ms  x576   void vllm::reshape_and_cache_flash_kernel<__nv_bfloat16, __nv_bfloat16 
+      3.77 ms  x36    triton_red_fused_fused_add_rms_norm_2                                  
+      3.63 ms  x35    triton_per_fused_add_cat_index_select_mul_rms_norm_split_split_with_si 
+      3.02 ms  x560   triton_per_fused_add_cat_index_select_mul_rms_norm_split_split_with_si 
+      2.41 ms  x36    triton_red_fused_fused_add_rms_norm_0                                  
+      2.35 ms  x246   cuLaunchKernelEx                                                       
+      2.23 ms  x100   cudaEventRecordWithFlags                                               
+      2.22 ms  x36    _C_cache_ops::reshape_and_cache_flash                                  
+      1.83 ms  x184   cudaStreamIsCapturing                                                  
+      1.43 ms  x540   void cublasLt::splitKreduce_kernel<32, 16, int, __nv_bfloat16, __nv_bf 
+      1.33 ms  x540   void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16,  
+      1.16 ms  x35    triton_per_fused_add_cat_index_select_mul_rms_norm_split_split_with_si 

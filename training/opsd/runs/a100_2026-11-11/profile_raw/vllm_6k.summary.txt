@@ -1,0 +1,31 @@
+# top ops by self CUDA time (6k, vLLM)
+     43.02 ms  x540   ampere_bf16_s16816gemm_bf16_128x64_ldg8_f2f_stages_32x6_tn             
+     21.99 ms  x540   ampere_bf16_s16816gemm_bf16_64x64_sliced1x2_ldg8_f2f_stages_64x6_tn    
+     14.98 ms  x160   aten::mm                                                               
+     14.75 ms  x540   void cutlass::Kernel2<cutlass_80_tensorop_bf16_s16816gemm_relu_bf16_64 
+     14.16 ms  x37    ## Call CompiledFxGraph None ##                                        
+     14.04 ms  x540   void flash::flash_fwd_splitkv_kernel<Flash_fwd_kernel_traits<128, 64,  
+     12.52 ms  x88    ampere_bf16_s16816gemm_bf16_64x64_sliced1x2_ldg8_f2f_stages_64x5_tn    
+     10.48 ms  x540   void cutlass::Kernel2<cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_t 
+      5.64 ms  x540   void flash::flash_fwd_splitkv_combine_kernel<Flash_fwd_kernel_traits<1 
+      5.61 ms  x36    _vllm_fa2_C::varlen_fwd                                                
+      5.61 ms  x36    void flash::flash_fwd_splitkv_kernel<Flash_fwd_kernel_traits<128, 64,  
+      2.25 ms  x72    ampere_bf16_s16816gemm_bf16_128x64_ldg8_f2f_stages_64x4_tn             
+      2.03 ms  x560   triton_per_fused_add_cat_index_select_mul_rms_norm_split_split_with_si 
+      1.96 ms  x560   triton_per_fused_add_cat_index_select_mul_rms_norm_split_split_with_si 
+      1.67 ms  x576   void vllm::reshape_and_cache_flash_kernel<__nv_bfloat16, __nv_bfloat16 
+      1.64 ms  x612   void cublasLt::splitKreduce_kernel<32, 16, int, __nv_bfloat16, __nv_bf 
+      1.61 ms  x576   triton_red_fused_fused_add_rms_norm_2                                  
+      1.54 ms  x576   triton_red_fused_fused_add_rms_norm_0                                  
+      1.29 ms  x540   void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16,  
+      1.17 ms  x576   triton_poi_fused_mul_silu_slice_1                                      
+      1.01 ms  x540   Memset (Unknown)                                                       
+      0.86 ms  x555   memcpy32_post                                                          
+      0.55 ms  x80    _topp_sb_step_kernel                                                   
+      0.38 ms  x64    aten::index                                                            
+      0.23 ms  x116   aten::copy_                                                            
+      0.18 ms  x32    void at::native::index_elementwise_kernel<128, 4, at::native::gpu_inde 
+      0.17 ms  x16    _gumbel_sample_kernel                                                  
+      0.16 ms  x184   cudaStreamIsCapturing                                                  
+      0.14 ms  x35    triton_per_fused_add_cat_index_select_mul_rms_norm_split_split_with_si 
+      0.14 ms  x35    triton_per_fused_add_cat_index_select_mul_rms_norm_split_split_with_si 

@@ -1,0 +1,6 @@
+# Raw profiler output is kept on disk only; commit the derived artifacts
+# (summary.txt, phases.txt, result.json, kernsum.txt, logs).
+runs/*/profile_raw/*.trace.json
+runs/*/profile_raw/*.events.json
+runs/*/profile_raw/*.nsys-rep
+runs/*/profile_raw/*.sqlite
