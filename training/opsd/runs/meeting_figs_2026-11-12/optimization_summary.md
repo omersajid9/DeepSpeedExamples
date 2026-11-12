@@ -1,16 +1,16 @@
 # Rollout Generation Optimization — Meeting Summary
 
-**System:** A100-SXM4-40GB (gpua021) · Qwen3-4B/8B · bf16 · torch 2.15.0+cu132, flashinfer 0.7.4
-**Data:** LongBench-style prompts; 6k task = 6144 prompt / 16 new (Gumbel, T=0.7); 20k task = 20480 prompt / 8 new (greedy). Seed 0, 1 warmup + 1 measured iteration per cell.
-**Figures:** `runs/meeting_figs_2026-11-12/` (PDF + PNG, 300 dpi). **Raw data:** `runs/a100_2026-11-11/`, `runs/cb_ablation_2026-11-12/`.
+**System:** A100-SXM4-40GB (gpua021) · Qwen3-4B/8B · bf16 · torch 2.15.0+cu132, flashinfer 0.7.4 · vLLM 0.33.0 (oracle)
+**Data:** LongBench-style prompts; 6k task = 6144 prompt / 16 new (Gumbel, T=0.7); 20k task = 20480 prompt / 8 new (greedy). Seed 0, 1 warmup + 1 measured iteration per cell. CB study runs at C=4 (6k) / C=2 (20k); vLLM oracles run at the same concurrency (batch 4 / batch 2, util 0.85, KV auto-sized).
+**Figures:** `runs/meeting_figs_2026-11-12/` (PDF + PNG, 300 dpi). **Raw data:** `runs/a100_2026-11-11/`, `runs/cb_ablation_2026-11-12/` (+ `vllm_oracles/`).
 
 ---
 
 ## Slide 1 — TL;DR
 
 - **C=1 (single request):** new-best config closes most of the gap to vLLM — **1.24× vLLM wall at 6k, 1.09× at 20k** (was 2.69× / 1.59× for dense eager).
+- **Continuous batching (C≥2), vs vLLM at the same concurrency:** new-best **E is within 14–35% of vLLM wall at all four workloads (1.14–1.35×)**; eager+CB is 1.6–3.3× away. Paged KV is what gets us there.
 - **Decode forward time: 4.0× faster at 6k, 6.2× at 20k** vs dense eager — FlashInfer paged decode + compiled sampler are the largest single levers.
-- **Continuous batching (C≥2):** paged KV cache is the win — **1.4–1.5× wall speedup at C=4 (6k), 2.4–2.9× at C=2 (20k)** vs eager+CB; decode ratios 0.17–0.44× of eager.
 - **FlashInfer decode wins at every CB width tested** (incl. C=4) — the "FI decode only good at batch 1" concern does not hold under real graph replay.
 - **Chunked prefill: a pure peak-memory knob, not a speed knob** — latency ≈ no-chunk from c≥1024; peak memory −12–15% at c128.
 
@@ -44,6 +44,15 @@ Wall / decode ms, ratio to A (eager + CB):
 | 8B 6k (C=4) decode | 1077 (1.00) | 903 (.84) | 903 (.84) | 479 (.44) | 453 (.42) | **311 (.29)** |
 | 8B 20k (C=2) wall | 10068 (1.00) | 9994 (.99) | 9993 (.99) | 4386 (.44) | **4217 (.42)** | 4357 (.43) |
 | 8B 20k (C=2) decode | 770 (1.00) | 687 (.89) | 688 (.89) | 312 (.41) | 302 (.39) | **157 (.20)** |
+
+**vs vLLM at the same concurrency** (wall ratio; vLLM oracles 1235.1 / 2646.4 / 1960.3 / 3709.8 ms for 4B-6k-C4 / 4B-20k-C2 / 8B-6k-C4 / 8B-20k-C2):
+
+| Workload (C) | A eager | D paged | **E fused** | F FI+sampler |
+|---|---|---|---|---|
+| 4B 6k (C=4) | 1.95 | 1.47 | **1.35** | 1.40 |
+| 4B 20k (C=2) | 3.33 | 1.22 | **1.15** | 1.20 |
+| 8B 6k (C=4) | 1.63 | 1.34 | **1.22** | 1.29 |
+| 8B 20k (C=2) | 2.71 | 1.18 | **1.14** | 1.17 |
 
 **Takeaways**
 - CUDA graphs alone under CB are worth only **~1–9%** — the dense-graph path does not exploit CB.
@@ -89,7 +98,11 @@ Wall / decode ms, ratio to A (eager + CB):
 | `cb_levels_vs_eager_decode` | Largest lever: F = 0.17–0.29× of eager decode at every workload |
 | `cb_levels_vs_eager_tok_s` | Mirrors wall (throughput ratios) |
 | `cb_levels_vs_eager_peak` | Paged cache is memory-efficient (0.65–0.76× dense+CB); E adds inductor buffers at 20k (~2×) |
-| `ablation_vs_vllm_{6k,20k}_total` | Ladder closes 2.69× → 1.24× (6k) and 1.59× → 1.09× (20k) vs vLLM |
+| `cb_vs_vllm_total` | Your 6 CB steps vs vLLM at the same concurrency: new-best E within 14–35% of vLLM at every workload; eager+CB 1.6–3.3× away |
+| `cb_vs_vllm_tok_s` | Same in throughput: E ≈ 0.74–0.87× of vLLM total tok/s |
+| `cb_vs_vllm_prefill_vs_A` | Prefill barely moves through the ladder (vLLM has no phase data, so ratio to A) |
+| `cb_vs_vllm_decode_vs_A` | Decode collapses 2.4–5.9× through the ladder — the FI-decode step is the last big drop |
+| `ablation_vs_vllm_{6k,20k}_total` | C=1 ladder closes 2.69× → 1.24× (6k) and 1.59× → 1.09× (20k) vs vLLM (single-request study, batch 1) |
 | `ablation_vs_vllm_{6k,20k}_tok_s` | Same in throughput: 0.80× / 0.92× of vLLM |
 | `ablation_vs_dense_eager_{6k,20k}_prefill` | Residual gap: prefill only reaches 0.89× of dense eager (6k/20k) |
 | `ablation_vs_dense_eager_{6k,20k}_decode` | Decode down to 0.25× / 0.16× of dense eager — where the wins live |
@@ -99,7 +112,7 @@ Wall / decode ms, ratio to A (eager + CB):
 ## Caveats
 
 - **Bug found & fixed in this study:** `fork/optimization-merged`'s paged capture paths check `layer.is_initialized` / call `layer.lazy_initialization()`, which the up-front-allocated `paged_cache.py` never defined → every paged graph capture raised `AttributeError` and **silently fell back to eager**. All 12 CB D/E/F cells were re-run on `fix/paged-layer-lazy-init` (`00d4ff3b7`); pre-fix numbers preserved in `runs/cb_ablation_2026-11-12/pre_lazy_init_fix/`. A/B/C (dense) are unaffected.
-- **vLLM oracle** records total wall only: total-latency figures are true ratios; throughput is derived (new tokens / wall, same definition as the bench); prefill/decode/peak figures are normalized to dense eager instead (no vLLM phase/memory data).
+- **vLLM oracles.** The CB-width vLLM cells (`vllm_oracles/`, run 2026-11-12 via `r_vllm_cb_oracles.sh`, vLLM 0.33.0, util 0.85, KV auto-sized) carry total wall + derivable total throughput only (throughput = batch × new tokens / wall, same definition as the bench). The C=1 A100 oracles likewise have no phase or memory data, so all prefill/decode/peak figures are normalized to the dense-eager/A rung instead. Token SHAs can differ between engines at batch ≥ 2 (batch-dependent numerics / sampling streams) — expected, not a correctness issue.
 - **E_fused** cells hit the dynamo recompile limit on the paged write path (consistent across all E cells; identical code path, so comparisons stay fair).
 - **8B 20k E_fused** required `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` (5.8 GiB inductor logit buffer vs 5.2 GiB free) — genuine A100-40GB memory wall; 4B 20k E runs without it.
 - One measured iteration per cell (after 1 warmup); medians not applicable.

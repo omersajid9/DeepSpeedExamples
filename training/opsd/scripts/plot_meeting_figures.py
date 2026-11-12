@@ -5,6 +5,10 @@
 Figures (all in runs/meeting_figs_2026-11-12/, PDF + PNG):
   CB ablation (A_eager = 1.0, 4 panels per metric):
     cb_levels_vs_eager_latency / _prefill / _decode / _tok_s / _peak
+  CB 6-step ladder vs vLLM at the same concurrency (vLLM = 1.0, gray bar;
+  oracles from r_vllm_cb_oracles.sh in runs/cb_ablation_2026-11-12/vllm_oracles/):
+    cb_vs_vllm_total / _tok_s
+    cb_vs_vllm_prefill_vs_A / _decode_vs_A  (vLLM has no phase data)
   A100 C=1 ladder, vLLM = 1.0 (total latency + throughput — the only
   metrics the vLLM oracle records; throughput = new tokens / total wall):
     ablation_vs_vllm_{6k,20k}_{total,tok_s}
@@ -63,9 +67,9 @@ def cell(directory, name):
     peak = max(d.get("peak_memory_mb") or 0.0, d.get("warmup_peak_memory_mb") or 0.0)
     tok_s = prof.get("tokens_per_second")
     if tok_s is None and it.get("wall_ms") and d.get("max_new_tokens"):
-        # vLLM oracle records wall only; throughput := new tokens / total wall
-        # (same definition as the bench's tokens_per_second = tokens / total_ms)
-        tok_s = d["max_new_tokens"] / (it["wall_ms"] / 1000.0)
+        # vLLM oracle records wall only; throughput := total new tokens /
+        # total wall (same definition as the bench's tokens_per_second)
+        tok_s = d.get("batch_size", 1) * d["max_new_tokens"] / (it["wall_ms"] / 1000.0)
     return {
         "wall": it.get("wall_ms"),
         "prefill": prof.get("prefill_forward_ms"),
@@ -132,6 +136,78 @@ def cb_figure(metric, fname, ylabel):
         ax.set_title(label, fontsize=10.5)
     axes[0].set_ylabel(ylabel)
     fig.suptitle(f"Continuous-batching ablation, A100 — ratio to level A (eager + continuous batching)   [{metric}]",
+                 fontsize=12)
+    fig.tight_layout(rect=(0, 0, 1, 0.93))
+    save(fig, fname)
+
+
+# ----------------------------------- CB 6-step ladder vs vLLM at CB width
+LEVELS_ORDER = ("A_eager", "B_single_graph", "C_multi_graph",
+                "D_paged", "E_fused", "F_flashinfer_sampler")
+WORKLOADS = [("qwen3_4b", "6k", "Qwen3-4B, 6k (C=4)"),
+             ("qwen3_4b", "20k", "Qwen3-4B, 20k (C=2)"),
+             ("qwen3_8b", "6k", "Qwen3-8B, 6k (C=4)"),
+             ("qwen3_8b", "20k", "Qwen3-8B, 20k (C=2)")]
+CB_VLLM = CB / "vllm_oracles"
+VLLM_ORACLES = {
+    ("qwen3_4b", "6k"): ("vllm_4b_6k_c4", "C=4"),
+    ("qwen3_4b", "20k"): ("vllm_4b_20k_c2", "C=2"),
+    ("qwen3_8b", "6k"): ("vllm_8b_6k_c4", "C=4"),
+    ("qwen3_8b", "20k"): ("vllm_8b_20k_c2", "C=2"),
+}
+STEP_LABELS = ["A\neager", "B\ngraph", "C\nladder", "D\npaged", "E\nfused", "F\nFI dec"]
+
+
+def assert_vllm_oracles():
+    missing = [f"{m}_{t}" for (m, t), (name, _w) in VLLM_ORACLES.items()
+               if not (CB_VLLM / f"{name}.json").exists()]
+    if missing:
+        raise SystemExit("vLLM CB-width oracles missing for: " + ", ".join(missing)
+                         + " — run r_vllm_cb_oracles.sh first")
+
+
+def cb_vllm_figure(metric, fname, ylabel):
+    """The 6-step CB ladder against a vLLM oracle run at the same concurrency.
+
+    wall/tok_s/peak: ratio to the vLLM oracle (vLLM = 1.0, gray bar).
+    prefill/decode: vLLM records no phase-level data, so these are ratios to
+    A_eager and the title says so.
+    """
+    has_vllm = metric in ("wall", "tok_s", "peak")
+    base_note = ("ratio to vLLM at same concurrency" if has_vllm
+                 else "vLLM has no phase data — ratio to level A (eager + CB)")
+    cells = []
+    for m, t, label in WORKLOADS:
+        vname, width = VLLM_ORACLES[(m, t)]
+        row = {lv: cell(CB_RAW, f"{m}_{t}_{lv}")[metric] for lv in LEVELS_ORDER}
+        row["vllm"] = cell(CB_VLLM, vname)[metric]
+        cells.append((label, width, row))
+    fig, axes = plt.subplots(1, 4, figsize=(14.5, 3.4))
+    for ax, (label, width, row) in zip(axes, cells):
+        if has_vllm:
+            base = row["vllm"]
+            order = list(LEVELS_ORDER) + ["vllm"]
+            labels = STEP_LABELS + [f"vLLM\n{width}"]
+        else:
+            base = row["A_eager"]
+            order = list(LEVELS_ORDER)
+            labels = STEP_LABELS
+        vals = [row[lv] / base for lv in order]
+        x = range(len(order))
+        colors = [C_TOTAL] * len(order)
+        if has_vllm:
+            colors[-1] = "#8c8c8c"
+        bars = ax.bar(x, vals, width=0.62, color=colors,
+                      edgecolor="0.3", linewidth=0.5, zorder=3)
+        ax.axhline(1.0, color="0.3", linestyle="--", linewidth=0.8, zorder=2)
+        annotate_ratios(ax, bars, vals)
+        ax.set_yscale("log")
+        ax.set_ylim(bottom=max(0.10, min(vals) * 0.75))
+        ax.set_xticks(list(x))
+        ax.set_xticklabels(labels, fontsize=7.5)
+        ax.set_title(label, fontsize=10.5)
+    axes[0].set_ylabel(ylabel)
+    fig.suptitle(f"Continuous-batching 6-step ablation vs vLLM, A100 — {base_note}   [{metric}]",
                  fontsize=12)
     fig.tight_layout(rect=(0, 0, 1, 0.93))
     save(fig, fname)
@@ -243,12 +319,21 @@ def chunk_figure():
 
 if __name__ == "__main__":
     assert_rerun_fresh()
+    assert_vllm_oracles()
     cb_figure("wall", "cb_levels_vs_eager_latency", "Total latency, ratio to A (log scale)")
     cb_figure("prefill", "cb_levels_vs_eager_prefill", "Prefill forward, ratio to A (log scale)")
     cb_figure("decode", "cb_levels_vs_eager_decode", "Decode forward, ratio to A (log scale)")
     # tok/s and peak memory: ratios are fine for tok/s; for memory ratio = mem/ A
     cb_figure("tok_s", "cb_levels_vs_eager_tok_s", "Throughput (tok/s), ratio to A")
     cb_figure("peak", "cb_levels_vs_eager_peak", "Peak memory (MiB), ratio to A")
+    # same 6-step ladder, vLLM at the same concurrency as reference (=1.0).
+    # peak memory is not vLLM-normalizable: the vLLM env reports
+    # torch max_memory_allocated = 0 (engine resets stats at startup),
+    # so peak ratios live in the A-normalized set instead.
+    cb_vllm_figure("wall", "cb_vs_vllm_total", "Total latency, ratio to vLLM (log scale)")
+    cb_vllm_figure("tok_s", "cb_vs_vllm_tok_s", "Throughput (tok/s), ratio to vLLM")
+    cb_vllm_figure("prefill", "cb_vs_vllm_prefill_vs_A", "Prefill forward, ratio to A (log scale)")
+    cb_vllm_figure("decode", "cb_vs_vllm_decode_vs_A", "Decode forward, ratio to A (log scale)")
     for key in (6, 20):
         # vLLM oracle carries total wall + (derivable) total throughput only
         a100_figure("wall", f"ablation_vs_vllm_{key}k_total", "Total latency, ratio to vLLM (log scale)", key)
