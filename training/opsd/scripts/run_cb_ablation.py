@@ -46,6 +46,7 @@ DS = Path("/u/msajid/projects/DeepSpeed")
 OUT = OPSD / "runs" / "cb_ablation_2026-11-12"
 RAW = OUT / "raw"
 LOGS = OUT / "logs"
+IGNORE_EOS = False
 
 PY = "/work/nvme/bcjw/msajid/conda/opsd/bin/python"
 BENCH = OPSD / "benchmarks" / "bench_continuous_graph.py"
@@ -63,6 +64,8 @@ TASKS = {
                prompt=6144, new=16, temperature=0.7, top_p=0.9),
     "20k": dict(data="data/longbench_20k.jsonl", batch=2, c=2,
                 prompt=20480, new=8, temperature=0.0, top_p=1.0),
+    "3k": dict(data="data/longbench_20k.jsonl", batch=4, c=4,
+               prompt=3072, new=3072, temperature=0.7, top_p=0.9),
 }
 
 WARMUP, ITERATIONS = 1, 1
@@ -120,6 +123,7 @@ def cell_cmd(model, task, level):
         "--warmup", str(WARMUP),
         "--iterations", str(ITERATIONS),
         "--save-response-ids",
+        *(["--ignore-eos"] if IGNORE_EOS else []),
         *extra,
     ]
 
@@ -233,18 +237,24 @@ def summarize(rows):
               f"`fork/optimization-merged` + lazy-init fix), "
               f"flashinfer 0.7.4, dskernels (blocked-flash JIT). bf16, seed 0, warmup 1, "
               f"one measured iteration per cell, chunked prefill off everywhere, "
-              f"`--top-k -1`, `--save-response-ids`.")
+              + ("EOS stopping disabled (`--ignore-eos`; every row generates exactly the task's N tokens), "
+                 if IGNORE_EOS else "")
+              + f"`--top-k -1`, `--save-response-ids`. "
+              f"Task shapes: " + "; ".join(f"{k} = {t['prompt']} prompt / {t['new']} new "
+                                           f"(C={t['c']}, T={t['temperature']}, PP={t['top_p']})"
+                                           for k, t in TASKS.items()) + ".")
     md.append("")
-    md.append("**Rerun note (2026-11-12):** the original D/E/F cells ran on "
-              "`fork/optimization-merged`, where every paged graph capture raised "
-              "`AttributeError: '_PagedLayer' object has no attribute 'is_initialized'` "
-              "(the merged engine's lazy-init checks had no counterpart in the up-front-allocated "
-              "`paged_cache.py`) and silently fell back to eager. All 12 D/E/F cells were "
-              "re-run on 2026-11-12 on `fix/paged-layer-lazy-init` (`00d4ff3b7`); A/B/C are "
-              "unaffected (dense paths never touch the paged lazy-init code) and are kept as "
-              "originally measured. Pre-fix D/E/F numbers are preserved in "
-              "`pre_lazy_init_fix/`.")
-    md.append("")
+    if (OUT / "pre_lazy_init_fix").exists():
+        md.append("**Rerun note (2026-11-12):** the original D/E/F cells ran on "
+                  "`fork/optimization-merged`, where every paged graph capture raised "
+                  "`AttributeError: '_PagedLayer' object has no attribute 'is_initialized'` "
+                  "(the merged engine's lazy-init checks had no counterpart in the up-front-allocated "
+                  "`paged_cache.py`) and silently fell back to eager. All 12 D/E/F cells were "
+                  "re-run on 2026-11-12 on `fix/paged-layer-lazy-init` (`00d4ff3b7`); A/B/C are "
+                  "unaffected (dense paths never touch the paged lazy-init code) and are kept as "
+                  "originally measured. Pre-fix D/E/F numbers are preserved in "
+                  "`pre_lazy_init_fix/`.")
+        md.append("")
     md.append("## Levels")
     md.append("")
     md.append("| Level | Definition | Flags |")
@@ -397,7 +407,25 @@ def main():
     parser.add_argument("--summary-only", action="store_true",
                         help="regenerate md/csv from existing raw JSONs; do not run any cell")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--out", default="",
+                        help="alternate output dir (default runs/cb_ablation_2026-11-12); "
+                             "raw/, logs/, md and csv are created under it")
+    parser.add_argument("--new-tokens", type=int, default=0,
+                        help="override max-new-tokens for all tasks")
+    parser.add_argument("--ignore-eos", action="store_true",
+                        help="disable EOS stopping in the bench so every row "
+                             "generates exactly max_new_tokens tokens")
     args = parser.parse_args()
+
+    global OUT, RAW, LOGS, IGNORE_EOS
+    IGNORE_EOS = args.ignore_eos
+    if args.out:
+        OUT = Path(args.out).resolve()
+        RAW = OUT / "raw"
+        LOGS = OUT / "logs"
+    if args.new_tokens > 0:
+        for t in TASKS.values():
+            t["new"] = args.new_tokens
 
     if args.summary_only:
         RAW.mkdir(parents=True, exist_ok=True)

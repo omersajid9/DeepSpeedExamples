@@ -124,6 +124,9 @@ def main():
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--save-response-ids", action="store_true")
     parser.add_argument("--save-response-logprobs", action="store_true")
+    parser.add_argument("--ignore-eos", action="store_true",
+                        help="disable EOS stopping so every row generates exactly "
+                             "max_new_tokens tokens (uniform-length ablation runs)")
     args = parser.parse_args()
     torch.manual_seed(args.seed)
     if torch.cuda.is_available():  #ignore-cuda
@@ -133,6 +136,10 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(args.model, padding_side="left")
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
+    if args.ignore_eos:
+        # _is_eos() checks tokenizer.eos_token_id; None disables EOS stopping
+        # so every row generates exactly --max-new-tokens tokens.
+        tokenizer.eos_token_id = None
 
     model, is_hybrid = _load_model(args.model, args.model_backend)
     model.to(device)
