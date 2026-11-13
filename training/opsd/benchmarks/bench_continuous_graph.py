@@ -127,6 +127,9 @@ def main():
     parser.add_argument("--ignore-eos", action="store_true",
                         help="disable EOS stopping so every row generates exactly "
                              "max_new_tokens tokens (uniform-length ablation runs)")
+    parser.add_argument("--torch-profile", default="",
+                        help="if set, wrap the measured iteration(s) in "
+                             "torch.profiler and write a chrome trace to this path")
     args = parser.parse_args()
     torch.manual_seed(args.seed)
     if torch.cuda.is_available():  #ignore-cuda
@@ -187,11 +190,21 @@ def main():
 
         iterations = []
         response_rows = None
+        torch_profilers = []
         for _ in range(args.iterations):
+            ctx = None
+            if args.torch_profile:
+                from torch.profiler import profile, ProfilerActivity
+                ctx = profile(activities=[ProfilerActivity.CPU,
+                                         ProfilerActivity.CUDA])
+                ctx.__enter__()
             start = time.perf_counter()
             batch = rollout.generate(request, sampling)
             get_accelerator().synchronize()
             wall_ms = (time.perf_counter() - start) * 1000.0
+            if ctx is not None:
+                ctx.__exit__(None, None, None)
+                torch_profilers.append(ctx)
             rows = _response_ids(batch)
             if response_rows is None:
                 response_rows = rows
@@ -204,6 +217,12 @@ def main():
             if args.save_response_logprobs and batch.response_logprobs is not None:
                 iteration["response_logprobs"] = batch.response_logprobs.tolist()
             iterations.append(iteration)
+
+        if torch_profilers:
+            prof = torch_profilers[0]
+            prof.export_chrome_trace(args.torch_profile)
+            print(prof.key_averages().table(sort_by="cuda_time_total",
+                                            row_limit=30), flush=True)
 
     result = {
         "model": args.model,

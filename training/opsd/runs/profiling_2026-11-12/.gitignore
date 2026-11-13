@@ -1,0 +1,7 @@
+# Raw profiler binaries: kept on disk only, not committed.
+# Regenerate with prof_ds_rerun.sh / prof_vllm_rerun.sh + `nsys stats` (see gaps.md §10).
+*.nsys-rep
+*.sqlite
+ds_f4b/torch_ds_f4b.json
+vllm4b/torch/*.json.gz
+vllm4b/torch2/*.json.gz

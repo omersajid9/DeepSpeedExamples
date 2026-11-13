@@ -67,6 +67,9 @@ def main():
     parser.add_argument("--kv-cache-memory-gib", type=float, default=0.0,
                         help="Cap the vLLM KV pool to the DeepSpeed cache's budget.")
     parser.add_argument("--enable-prefix-caching", action="store_true")
+    parser.add_argument("--torch-profile", default="",
+                        help="if set, enable vLLM's built-in torch profiler "
+                             "(writes traces into this directory)")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
 
@@ -75,7 +78,7 @@ def main():
     prompts = [{"prompt_token_ids": ids} for ids in prompt_token_ids]
     max_model_len = args.max_prompt_length + args.max_new_tokens
 
-    llm = LLM(
+    llm_kwargs = dict(
         model=args.model,
         dtype="bfloat16",
         max_model_len=max_model_len,
@@ -88,6 +91,15 @@ def main():
         disable_log_stats=True,
         seed=args.seed,
     )
+    if args.torch_profile:
+        Path(args.torch_profile).mkdir(parents=True, exist_ok=True)
+        llm_kwargs["profiler_config"] = {
+            "profiler": "torch",
+            "torch_profiler_dir": args.torch_profile,
+            "active_iterations": 100000,
+            "max_iterations": 0,
+        }
+    llm = LLM(**llm_kwargs)
     sampling = SamplingParams(
         max_tokens=args.max_new_tokens,
         temperature=args.temperature,
@@ -106,6 +118,8 @@ def main():
 
         iterations = []
         response_rows = None
+        if args.torch_profile:
+            llm.start_profile()
         for _ in range(args.iterations):
             torch.cuda.synchronize()
             start = time.perf_counter()
@@ -116,6 +130,8 @@ def main():
             if response_rows is None:
                 response_rows = rows
             iterations.append({"wall_ms": wall_ms, "response_ids": rows})
+        if args.torch_profile:
+            llm.stop_profile()
 
     result = {
         "engine": "vllm",
