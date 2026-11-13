@@ -136,9 +136,58 @@ def plot(metric, fname, suptitle, include_vllm):
     print(f"wrote {fname}.pdf/.png")
 
 
+def plot_ratio_vllm(fname="total_e2e_vs_vllm"):
+    """Total e2e latency as a ratio to the vLLM oracle (vLLM = 1.0)."""
+    fig, axes = plt.subplots(2, 3, figsize=(13, 6.8))
+    for r, (mkey, mshort, mname) in enumerate(MODELS):
+        for c, (task, tlabel, tdir, vkey) in enumerate(TASKS):
+            ax = axes[r, c]
+            base = load_vllm(tdir, mshort, vkey)
+            if base is None:
+                ax.set_visible(False)
+                ax.set_title(f"{tlabel}\n(no vLLM oracle)")
+                continue
+            names, vals, colors = ["vLLM"], [1.0], [VLLM_COLOR]
+            for lv, name, color in LEVELS:
+                cell = load_cell(tdir, mkey, task, lv)
+                v = cell["wall"] if cell else None
+                if v is not None:
+                    names.insert(-1, name)
+                    vals.insert(-1, v / base["wall"])
+                    colors.insert(-1, color)
+            bars = ax.bar(range(len(vals)), vals, width=0.72, color=colors,
+                          edgecolor="0.3", linewidth=0.5, zorder=3)
+            for b in bars:
+                ax.annotate(f"{b.get_height():.2f}x",
+                            (b.get_x() + b.get_width() / 2, b.get_height()),
+                            textcoords="offset points", xytext=(0, 2),
+                            ha="center", fontsize=7.5)
+            ax.axhline(1.0, color="0.3", linestyle="--", linewidth=0.8, zorder=2)
+            ax.set_yscale("log")
+            ax.set_ylim(bottom=max(0.7, min(vals) * 0.55))
+            ax.set_xticks(range(len(vals)))
+            ax.set_xticklabels(names, rotation=18, ha="right", fontsize=7.5)
+            if c == 0:
+                ax.set_ylabel(mname, fontsize=10.5)
+            if r == 0:
+                ax.set_title(tlabel, fontsize=10)
+    fig.suptitle("Total end-to-end latency, ratio to vLLM at matching concurrency (vLLM = 1.0)",
+                 fontsize=13)
+    fig.text(0.99, 0.005,
+             "A100-SXM4-40GB, bf16, seed 0, one measured iteration; vLLM oracle at matching "
+             "concurrency",
+             ha="right", fontsize=7, color="0.4")
+    fig.tight_layout(rect=(0, 0.03, 1, 0.94))
+    for ext in ("pdf", "png"):
+        fig.savefig(OUT / f"{fname}.{ext}")
+    plt.close(fig)
+    print(f"wrote {fname}.pdf/.png")
+
+
 if __name__ == "__main__":
     plot("prefill", "prefill_ms", "Prefill forward latency by level and task", include_vllm=False)
     plot("decode", "decode_ms", "Decode forward latency by level and task", include_vllm=False)
     plot("wall", "total_e2e_ms", "Total end-to-end latency by level and task (incl. vLLM oracle)",
          include_vllm=True)
+    plot_ratio_vllm()
     print("done:", OUT)
